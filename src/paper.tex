@@ -82,12 +82,15 @@ Jezik je množica stavkov (nizov).
 
 \section{Predstavitev}
 
-\Special{Meta:} Avtomat regularnega izraza $r$ bo označen kot $\Automaton{r}$.
 
-Avtomat je tuple $(Q, \Sigma, \delta, q_0, F)$, kjer je $Q$ množica stanj, $\Sigma$ množica znakov ali abeceda, $\delta$ je funkcija prehodov in $F$ množica končnih stanj.
-Tuple je envivalenten \emph{struct} ali \emph{record}.
+Avtomat je tuple $(Q, \Sigma, \delta, q_0, F)$, kjer je $Q$ končna množica stanj, $\Sigma$ končna množica znakov ali abeceda, $\delta$ je funkcija prehodov in $F$ končna množica končnih stanj.
+Tuple lahko implementiramo kot \emph{struct} ali \emph{record}.
 Prenosna funkcija ima signaturo $Q \times \Sigma \rightarrow Q$.
 Implementiramo jo lahko, kot asociativni seznam, iskalno drevo ali tabelo.
+
+\Special{Meta:} Avtomat regularnega izraza $r$ bo označen kot $\Automaton{r}$.
+
+\Special{Meta:} Simbol $\dag$ označuje neveljavno stanje.
 
 \Ex
 \begin{gather*}
