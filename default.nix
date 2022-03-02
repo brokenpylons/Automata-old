@@ -24,9 +24,11 @@ stdenv.mkDerivation {
     cp paper.pdf $out
   '';
 
+  FONTCONFIG_FILE = pkgs.makeFontsConf { fontDirectories = pkgs.texlive.tex-gyre.pkgs; };
+
   buildInputs = [
     (texlive.combine {
-      inherit (texlive) scheme-small luatex biblatex latexmk biber;
+      inherit (texlive) scheme-small luatex biblatex latexmk biber listings fontspec unicode-math;
     })
   ];
 }
