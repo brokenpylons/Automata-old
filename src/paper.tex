@@ -406,10 +406,12 @@ Množica znakov se lahko predstavi kot šop robov (eden za vsak znak) ali pa en 
 
 \begin{align*}
   r &= s \circ t = s \Seq t \\
-  s &= s \Seq \Null \\
-  s &= \Null \Seq s \\
-  \Empty &= s \Seq \Empty \\
-  \Empty &= \Empty \Seq s
+  s \Seq \Null &\equiv s \\
+  \Null \Seq s &\equiv s   \\
+  s \Seq \Empty &\equiv \Empty \\
+  \Empty \Seq s &\equiv \Empty \\
+  (s \Seq p) \Seq q &\equiv s \Seq (p \Seq q) \equiv s \Seq p \Seq q \\
+  s \Seq t &\not\equiv t \Seq s\\
 \end{align*}
 
 \Special{Poseben primer:} Če $|\Language{s}| = |\Language{t}| = 1$, potem $\Language{s} = \{u\}$ in $\Language{t} = \{v\}$ in $\Language{r} = \{u \Seq v\}$.
@@ -766,8 +768,10 @@ Avtomat $\Automaton{s^0}$ je enak, kot avtomat za prazen stavek.
 \subsection{Unija}
 \begin{align*}
   r &= s \Union t \\
-  s &= \Empty \Union s \\
-  s &= s \Union \Empty
+  \Empty \Union s &\equiv s \\
+  s \Union \Empty &\equiv s \\
+  (s \Union p) \Union q &\equiv s \Union (p \Union q) \equiv s \Union p \Union q \\
+  s \Union t &\equiv t \Union s
 \end{align*}
 
 \begin{equation*}
@@ -1213,7 +1217,7 @@ Začetno stanje avtomata $\Automaton{s}$ označimo kot končno.
 \begin{align*}
   r &= \KleenePlus{s} \\
   r &= s \Union s \Seq s \Union s \Seq s \Seq s \Union \ldots\\
-  \Kleene{s} &= \Null \Union \KleenePlus{s} = \Opt{(\KleenePlus{s})} = \KleenePlus{(\Opt{s})}
+  \Kleene{s} &\equiv \Null \Union \KleenePlus{s} \equiv \Opt{(\KleenePlus{s})} \equiv \KleenePlus{(\Opt{s})}
 \end{align*}
 
 Ujemanje $s$ 1 ali več krat.
@@ -1292,7 +1296,7 @@ Avtomat pozitivnega zaprtja sestavimo enako, kot za Kleene-ovo zaprtje, z razlik
 \Ex
 \begin{align*}
   s_2 &= \Char{a}? \\
-  r_2 &= \KleenePlus{\Char{a}}
+  r_2 &= \KleenePlus{(\Char{a}?)}
 \end{align*}
 
 \begin{align*}
