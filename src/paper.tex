@@ -675,7 +675,7 @@ Končna stanja v avtomatu za $\Automaton{s}$ označimo kot ne-končna, razen če
 Če so robovi avtomatov označeni z množico znakov, avtomat konkatenacije sestavimo na čisto enak način, kot če bi bil na robovih en sam znak.
 
 \begin{equation*}
-  r_5 = \Char{0} \Seq \{\Char{0}, \dots, \Char{3}\} \Seq \{\Char{0}, \dots, \Char{7}\} \Seq \{\Char{0}, \dots, \Char{7}\}
+  r_5 = \{\Char{0}, \dots, \Char{3}\} \Seq \{\Char{0}, \dots, \Char{7}\} \Seq \{\Char{0}, \dots, \Char{7}\}
 \end{equation*}
 
 \begin{equation*}
@@ -760,7 +760,7 @@ Avtomat $\Automaton{s^0}$ je enak, kot avtomat za prazen stavek.
 
 \subsubsection{Bajt po osmiško}
 \begin{equation*}
-  r_5 = \Char{0} \Seq \{\Char{0}, \dots, \Char{3}\} \Seq (\{\Char{0}, \dots, \Char{7}\})^2
+  r_5 = \Seq \{\Char{0}, \dots, \Char{3}\} \Seq (\{\Char{0}, \dots, \Char{7}\})^2
 \end{equation*}
 
 \subsection{Unija}
@@ -900,7 +900,7 @@ Novo začetno stanje je končno, če je končno katero od začetnih stanj avtoma
 \begin{align*}
   s &= \Char{a} \Seq \Char{b} \\
   p &= \Char{a} \Seq \Char{b} \Seq \Char{c} \\
-  t &= \Char{a} \Seq \Char{d} \Seq \Char{e} \\
+  t &= \Char{a} \Seq \Char{c} \Seq \Char{d} \\
   r &= s \Union p \Union t \\
 \end{align*}
 
@@ -972,7 +972,7 @@ Stanje v nastalem avtomatu $q = (q_1, q_2)$ je končno, če je $q_1$ ali $q_2$ k
 
     \node[state, initial, label=above left:$\Automaton{p}$, below=of x0] (y0) {1};
     \node[state, right=of y0] (y1) {2};
-    \node[state, accepting, right=of y1] (y2) {3};
+    \node[state, right=of y1] (y2) {3};
     \node[state, accepting, right=of y2] (y3) {4};
 
     \draw (y0) edge[->] node[auto]{$\Char{a}$} (y1);
@@ -985,8 +985,8 @@ Stanje v nastalem avtomatu $q = (q_1, q_2)$ je končno, če je $q_1$ ali $q_2$ k
     \node[state, accepting, right=of z2] (z3) {4};
 
     \draw (z0) edge[->] node[auto]{$\Char{a}$} (z1);
-    \draw (z1) edge[->] node[auto]{$\Char{d}$} (z2);
-    \draw (z2) edge[->] node[auto]{$\Char{e}$} (z3);
+    \draw (z1) edge[->] node[auto]{$\Char{c}$} (z2);
+    \draw (z2) edge[->] node[auto]{$\Char{d}$} (z3);
 
     \node[state, initial, below=2cm of z0, label=above left:$\Automaton{r}$] (u0) {$(1,1,1)$};
     \node[state, right=of u0] (u1) {$(2, 2, 2)$};
@@ -1387,7 +1387,7 @@ Avtomat pozitivnega zaprtja sestavimo enako, kot za Kleene-ovo zaprtje, z razlik
 \subsubsection{Ključne besede in imena spremenljivk}
 \begin{align*}
   i &= \KleenePlus{\{\Char{a}, \dots, \Char{z}\}}\\
-  k &= \Char{a} \Seq \Char{b} \Union \Char{a} \Seq \Char{b} \Seq \Char{c} \Union \Char{a} \Seq \Char{d} \Union \Char{e} \Seq \Char{d}\\
+  k &= \Char{a} \Seq \Char{b} \Union \Char{a} \Seq \Char{b} \Seq \Char{c} \Union \Char{a} \Seq \Char{c} \Seq \Char{d}\\
   r &= i \Union k
 \end{align*}
 
