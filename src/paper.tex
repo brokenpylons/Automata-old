@@ -1,14 +1,26 @@
 \documentclass{article}
+\usepackage{mathtools}
+\usepackage{unicode-math}
+\usepackage{lualatex-math}
+\usepackage{tcolorbox}
+\setmainfont[
+  BoldFont={STIXTwoText-Bold},
+  ItalicFont={STIXTwoText-Italic},
+  BoldItalicFont={STIXTwoText-BoldItalic}
+]{STIXTwoText-Regular}
+\setmathfont{STIXTwoMath-Regular}
+
 \setlength{\parindent}{0pt}
 \setlength{\parskip}{0.5em}
 
 \usepackage{biblatex}
 \addbibresource{references.bib}
 \usepackage{amsmath}
-\usepackage{amssymb}
+%\usepackage{amssymb}
 \usepackage{listings}
 
-\DeclareMathOperator{\acc}{value}
+
+\DeclareMathOperator{\acc}{symbol}
 
 \usepackage{mathtools}
 \usepackage{tikz}
@@ -17,20 +29,28 @@
 \pgfdeclarelayer{foreground}
 \pgfsetlayers{background,main,foreground}
 
+\newcounter{example}
+\newcommand{\N}[1]{{{#1}_{\arabic{example}}}}
+\newcommand{\Next}{\stepcounter{example}}
+\newcommand{\Reset}{\setcounter{example}{1}}
+
 \newcommand{\Ex}{\textbf{Npr.}:\ }
 \newcommand{\Special}[1]{\textbf{#1}}
 \newcommand{\Empty}{\varnothing}
 \newcommand{\Null}{\varepsilon}
+\newcommand{\Alphabet}{\Sigma}
 \newcommand{\Language}[1]{\mathcal{L}(#1)}
 \newcommand{\Automaton}[1]{\mathcal{M}(#1)}
 \newcommand{\Str}[1]{\text{\textquotedbl\texttt{#1}\textquotedbl}}
 \newcommand{\Char}[1]{\texttt{#1}}
-\newcommand{\Seq}{\ }
+\newcommand{\Seq}{\cdot}
+\newcommand{\Spc}{\ }
 \newcommand{\Union}{\mathrel{|}}
-\newcommand{\Kleene}[1]{#1^\ast}
-\newcommand{\Rep}[2]{#1^#2}
+\newcommand{\Kleene}[1]{{#1}^\ast}
+\newcommand{\Rep}[2]{{#1}^{#2}}
 \newcommand{\Opt}[1]{#1?}
 \newcommand{\KleenePlus}[1]{#1^+}
+\newcommand{\Err}{\rdiagovfdiag}
 
 \makeatletter
 \DeclareRobustCommand{\Dots}{%
@@ -73,35 +93,41 @@
 \Special{Meta:} Simboli so omejeni na (pod)poglavja.
 
 \section{Jezik}
-Jezik je množica stavkov (nizov). 
+Jezik je (ne nujno končna) množica nizov.
 
 \Ex
 \begin{equation*}
   L = \{\Str{}, \Str{DoberDan}, \Str{123}, \Str{/}, \Str{1 + 1} \}
 \end{equation*}
 
-\section{Predstavitev}
+\section{Regularni izrazi}
+Regularni izrazi so algebra nad jeziki, ki sestavljena iz operacij $(\Union)$, $(\Seq)$, $(\ast)$, $\Char{a}$, $\Empty$, $\Null$.
+Z njimi lahko opišemo le podmnožico vseh jezikov, ki se imenuje "regularni jeziki".
 
+\section{Končni avtomati}
 
-Avtomat je tuple $(Q, \Sigma, \delta, q_0, F)$, kjer je $Q$ končna množica stanj, $\Sigma$ končna množica znakov ali abeceda, $\delta$ je funkcija prehodov in $F$ končna množica končnih stanj.
+Končni avtomat je tuple $(Q, \Alphabet, \delta, q_0, F)$, kjer je $Q$ končna množica stanj, $\Sigma$ končna množica znakov ali abeceda, $\delta$ je funkcija prehodov in $F$ končna množica končnih stanj.
 Tuple lahko implementiramo kot \emph{struct} ali \emph{record}.
-Prenosna funkcija ima signaturo $Q \times \Sigma \rightarrow Q$.
+Funkcija prehodov ima signaturo $Q \times \Sigma \not\rightarrow Q$.
 Implementiramo jo lahko, kot asociativni seznam, iskalno drevo ali tabelo.
 
 \Special{Meta:} Avtomat regularnega izraza $r$ bo označen kot $\Automaton{r}$.
 
-\Special{Meta:} Simbol $\dag$ označuje neveljavno stanje.
+\Special{Meta:} Simbol $\Err$ označuje neveljavno stanje.
 
 \Ex
-\begin{gather*}
+\begin{equation}
   r_1 = \Kleene{(\Char{b} \Seq (\Char{a} \Seq \Char{b})?)} \Seq \Char{c} \\
-  (Q_1, \Sigma, \delta_1, q_{0, 1}, F_1)
-\end{gather*}
-
+\end{equation}
 \begin{align*}
-  Q_1 &= \{1, 2, 3\} \\
-  \Sigma &= \{\Char{a}, \Char{b}, \Char{c}\} \\
-  q_{0, 1} &= 1 \\
+  \Automaton{r_1} &= (Q_1, \Sigma, \delta_1, q_{0, 1}, F_1)\\[1em]
+  Q_1 &= \{1, 2, 3\} \\[1em]
+  \Sigma &= \{\Char{a}, \Char{b}, \Char{c}\} \\[1em]
+  \delta_1(1, \Char{b}) & =  2\\
+  \delta_1(2, \Char{a}) & =  1\\
+  \delta_1(2, \Char{b}) & =  2\\
+  \delta_1(2, \Char{b}) & =  3\\[1em]
+  q_{0, 1} &= 1 \\[1em]
   F_1 &= \{3\}
 \end{align*}
 
@@ -110,11 +136,11 @@ Implementiramo jo lahko, kot asociativni seznam, iskalno drevo ali tabelo.
    \hline
    $\delta_1$ & \Char{a} & \Char{b} & \Char{c} \\ 
    \hline
-  1 & \dag & 2 & \dag  \\ 
+  1 & $\Err$ & 2 & $\Err$  \\ 
    \hline
   2 & 1 & 2 & 3  \\  
    \hline
-  3 & \dag & \dag & \dag   \\  
+  3 & $\Err$ & $\Err$ & $\Err$   \\  
    \hline
 \end{tabular}
 \end{center}
@@ -144,7 +170,7 @@ Vsak regularni izraz lahko ustreza večim različnim avtomatom.
 
 \begin{gather*}
   r_2 = \Kleene{(\Char{b} \Seq (\Char{a} \Seq \Char{b})?)} \Seq \Char{c} \\
-  (Q_2, \Sigma, \delta_2, q_{0, 2}, F_2)
+  \Automaton{r_2} = (Q_2, \Sigma, \delta_2, q_{0, 2}, F_2)
 \end{gather*}
 
 \begin{center}
@@ -171,10 +197,10 @@ Vsak regularni izraz lahko ustreza večim različnim avtomatom.
   \end{tikzpicture}
 \end{center}
 
-Funkcijo prehodov lahko definiramo tudi za stavek:
+Funkcijo prehodov lahko definiramo tudi za niz:
 \begin{align*} % XXX define empty string
   \Kleene{\delta}(q, \varepsilon) &= q\\
-  \Kleene{\delta}(q, a \Seq w) &= \Kleene{\delta}(q', w) \text{, kjer } q' = \delta(q, a) \text{ in } q' \neq \dag
+  \Kleene{\delta}(q, a \Seq w) &= \Kleene{\delta}(q', w) \text{, kjer } q' = \delta(q, a) \text{ in } q' \neq \Err
 \end{align*}
 
 \Ex
@@ -216,37 +242,22 @@ Jezik, ki ga avtomat opisuje:
   \Str{babbc},  \Str{babbbc}, \ldots, \Str{bababbc}, \Str{bababbbc}, \dots \}
 \end{multline*}
 
-Za implementacijo skenerja je potrebno avtomat nadgraditi s funkcijo, ki končna stanja preslika v terminale $\acc: Q \rightarrow T$.
-
-Skener začne na začetku vhodnega niza.
-Avtomat je takrat v stanju $q_0$.
-Skener prebere prvi znak $a$ in si ga zapomni.
-Na vsaki poziciji v vhodnem nizu je avtomat v stanju $q$.
-Skener prikliče zadnji znak $a$.
-Avtomat premaknemo v naslednje stanje $q'$, tako da $q' = \delta(q, a)$.
-Če $q' = \dag$ in $q \in F$ potem smo našli ujemanje.
-V tem primeru skener razpozna terminal $\acc(q)$.
-Postopek se nadaljuje z $q = q_0$.
-Če $q' = \dag$ in $q \not\in F$ potem je prišlo do napake.
-Sicer, skener prebere naslednji znak $a$ in si ga zapomni. 
-Postopek se nadaljuje z $q = q'$.
-
-\section{Regularni izrazi}
-Algebra je definirana, kot množica elementov in množica operatorjev.
-Podobno kot imamo številčne algebre, ki so definirane nad množicami števili ($\mathbb{R}$, $\mathbb{Z}$, $\mathbb{N}$, ...) in Boolean algebre, ki so definirane nad resničnostnimi vrednostmi ($\{0, 1\}$), imamo tudi algebre nad jeziki;
-To so \emph{regularni izrazi}.
-V naslednjih primerih primerjajte algebro nad $\mathbb{N}$ z operatorji $(+)$, $(\cdot)$, $0$, $1$ in regularne izraze nad $\Kleene{\Sigma}$ z operatorji $(\Union)$, $(\circ)$, $(\ast)$, $\Char{a}$, $\Empty$, $\Null$ (najmanjša zadostna množica operatorjev).
+Za implementacijo pregledovalnika je potrebno končnemu avtomatu dodati funkcijo, ki končna stanja preslika v terminale:
+\begin{equation*}
+  \acc: Q \rightarrow T
+\end{equation*}
 
 \Special{Meta:} Jezik regularnega izraza $r$ bo označen kot $\Language{r}$.\\
 
 \subsection{Prazen jezik}
+\begin{tcolorbox}[title={Definicija}]
 \begin{equation*}
-  r = \Empty
+  \begin{aligned}
+    r &= \Empty\\
+    \Language{r} &= \{\}
+  \end{aligned}
 \end{equation*}
-
-\begin{equation*}
-  \Language{r} = \{\}
-\end{equation*}
+\end{tcolorbox}
 
 \begin{center}
   \begin{tikzpicture}
@@ -262,15 +273,16 @@ V naslednjih primerih primerjajte algebro nad $\mathbb{N}$ z operatorji $(+)$, $
 \end{center}
 
 
-\subsection{Prazen stavek}
+\subsection{Prazen niz}
 
+\begin{tcolorbox}[title={Definicija}]
 \begin{equation*}
-  r = \Null
+  \begin{aligned}
+    r &= \Null\\
+    \Language{r} &= \{ \Str{} \}
+  \end{aligned}
 \end{equation*}
-
-\begin{equation*}
-  \Language{r} = \{ \Str{} \}
-\end{equation*}
+\end{tcolorbox}
 
 \begin{center}
   \begin{tikzpicture}
@@ -289,13 +301,14 @@ V naslednjih primerih primerjajte algebro nad $\mathbb{N}$ z operatorji $(+)$, $
 
 \subsection{Znak}
 
+\begin{tcolorbox}[title={Definicija}]
 \begin{equation*}
-  r = \Char{a}
+  \begin{aligned}
+    r &= \Char{a}\text{, kjer } \Char{a} \in \Alphabet\\\
+    \Language{r} &= \{ \Str{a} \}
+  \end{aligned}
 \end{equation*}
-
-\begin{equation*}
-  \Language{r} = \{ \Str{a} \}
-\end{equation*}
+\end{tcolorbox}
 
 \begin{center}
   \begin{tikzpicture}
@@ -314,14 +327,24 @@ V naslednjih primerih primerjajte algebro nad $\mathbb{N}$ z operatorji $(+)$, $
 \end{center}
 
 \subsection{Množica znakov}
+\Reset
 
-\begin{align*}
-  r &= \{ \Char{a}, \Char{b}, \Char{c} \} \\
-  r &= \Char{a} \Union \Char{b} \Union \Char{c}
-\end{align*}
-
+\begin{tcolorbox}[title={Definicija}]
 \begin{equation*}
-  \Language{r} = \{ \Str{a}, \Str{b}, \Str{c} \}
+  \begin{aligned}
+    r &= S\text{, kjer } S \subseteq \Alphabet \\
+    &= \Char{a} \Union \dots \Union \Char{b}\text{, kjer } \Char{a}, \dots, \Char{b} \in S\\
+    \Language{r} &= S
+  \end{aligned}
+\end{equation*}
+\end{tcolorbox}
+
+\Ex
+\begin{equation*}
+  \begin{aligned}
+    \N{r} &= \{ \Char{a}, \Char{b}, \Char{c} \} \\
+    \N{r} &= \Char{a} \Union \Char{b} \Union \Char{c}
+  \end{aligned}
 \end{equation*}
 
 Množica znakov se lahko predstavi kot šop robov (eden za vsak znak) ali pa en sam rob označen z množico.
@@ -334,10 +357,10 @@ Množica znakov se lahko predstavi kot šop robov (eden za vsak znak) ali pa en 
       initial text=$ $
     }
 
-    \node[state, initial, label=above left:$\Automaton{r}$] (p0) {};
+    \node[state, initial, label=above left:$\Automaton{\N{r}}$] (p0) {};
     \node[state, accepting, right=1.5cm of p0] (p1) {};
 
-    \node[state, initial, below=of p0, label=above left:$\Automaton{r}$] (q0) {};
+    \node[state, initial, below=of p0, label=above left:$\Automaton{\N{r}}$] (q0) {};
     \node[state, accepting, right=1.5cm of q0] (q1) {};
 
 
@@ -348,16 +371,18 @@ Množica znakov se lahko predstavi kot šop robov (eden za vsak znak) ali pa en 
     \draw (p0) edge[bend right=40] node[auto]{$\Char{c}$} (p1);
   \end{tikzpicture}
 \end{center}
+\Next
 
 \subsection*{Primeri}
-\subsubsection{Števke}
+
+\subsubsection{Y/N}
 
 \begin{equation*}
-  \Language{r} = \{ \Str{0}, \Str{1}, \Str{2}, \dots, \Str{9} \}
+  \Language{\N{r}} = \{ \Str{Y}, \Str{N} \}
 \end{equation*}
 
 \begin{equation*}
-  r = \{ \Char{0}, \Char{1}, \Char{2}, \dots, \Char{9} \}
+  \N{r} = \{ \Char{Y}, \Char{N} \}
 \end{equation*}
 
 \begin{center}
@@ -369,11 +394,45 @@ Množica znakov se lahko predstavi kot šop robov (eden za vsak znak) ali pa en 
       initial text=$ $
     }
 
-    \node[state, initial, label=above left:$\Automaton{r}$] (p0) {};
+    \node[state, initial, label=above left:$\Automaton{\N{r}}$] (p0) {};
+    \node[state, accepting, right=1.5cm of p0] (p1) {};
+
+    \node[state, initial, below=of p0, label=above left:$\Automaton{\N{r}}$] (q0) {};
+    \node[state, accepting, right=2.5cm of q0] (q1) {};
+
+
+    \draw (q0) edge node[auto]{$\{\Char{Y}, \Char{N} \} $} (q1);
+
+    \draw (p0) edge[bend left=40] node[auto]{$\Char{Y}$} (p1);
+    \draw (p0) edge[bend right=40] node[below]{$\Char{N}$} (p1);
+  \end{tikzpicture}
+\end{center}
+\Next
+
+\subsubsection{Števke}
+
+\begin{equation*}
+  \Language{\N{r}} = \{ \Str{0}, \Str{1}, \Str{2}, \dots, \Str{9} \}
+\end{equation*}
+
+\begin{equation*}
+  \N{r} = \{ \Char{0}, \Char{1}, \Char{2}, \dots, \Char{9} \}
+\end{equation*}
+
+\begin{center}
+  \begin{tikzpicture}
+    \tikzset{
+      ->,
+      node distance=1cm,
+      every state/.append style={minimum size=0.5cm},
+      initial text=$ $
+    }
+
+    \node[state, initial, label=above left:$\Automaton{\N{r}}$] (p0) {};
     \node[state, accepting, right=1.5cm of p0] (p1) {};
     \node at ($(p0)!0.5!(p1)$) {\Dots{}};
 
-    \node[state, initial, below=of p0, label=above left:$\Automaton{r}$] (q0) {};
+    \node[state, initial, below=of p0, label=above left:$\Automaton{\N{r}}$] (q0) {};
     \node[state, accepting, right=2.5cm of q0] (q1) {};
 
 
@@ -383,37 +442,56 @@ Množica znakov se lahko predstavi kot šop robov (eden za vsak znak) ali pa en 
     \draw (p0) edge[bend right=40] node[below]{$\Char{9}$} (p1);
   \end{tikzpicture}
 \end{center}
+\Next
 
 \subsubsection{Male črke}
 
 \begin{equation*}
-  \Language{r} = \{ \Str{a}, \Str{b}, \Str{c}, \dots, \Str{z} \}
+  \Language{\N{r}} = \{ \Str{a}, \Str{b}, \Str{c}, \dots, \Str{z} \}
 \end{equation*}
+\Next
 
 \subsubsection{Velike in male črke}
 
 \begin{equation*}
-  \Language{r} = \{ \Str{A}, \Str{B}, \Str{C}, \dots, \Str{Z}, \Str{a}, \Str{b}, \Str{c}, \dots, \Str{z} \}
+  \Language{\N{r}} = \{ \Str{A}, \Str{B}, \Str{C}, \dots, \Str{Z}, \Str{a}, \Str{b}, \Str{c}, \dots, \Str{z} \}
 \end{equation*}
+\Next
 
 \subsubsection{Heksadecimalne števke}
 
 \begin{equation*}
-  \Language{r} = \{ \Str{0}, \Str{1}, \Str{2}, \dots, \Str{9}, \Str{A}, \dots, \Str{F} \}
+  \Language{\N{r}} = \{ \Str{0}, \Str{1}, \Str{2}, \dots, \Str{9}, \Str{A}, \dots, \Str{F} \}
 \end{equation*}
+\Next
 
+\newpage
 \subsection{Konkatenacija}
+\Reset
 
-\begin{align*}
-  r &= s \circ t = s \Seq t \\
-  s \Seq \Null &\equiv s \\
-  \Null \Seq s &\equiv s   \\
-  s \Seq \Empty &\equiv \Empty \\
-  \Empty \Seq s &\equiv \Empty \\
-  (s \Seq p) \Seq q &\equiv s \Seq (p \Seq q) \equiv s \Seq p \Seq q \\
-  s \Seq t &\not\equiv t \Seq s\\
-\end{align*}
+\begin{tcolorbox}[title={Definicija}]
+\begin{equation*}
+  \begin{aligned}
+  r &= s \Seq t = s \Spc t\\
+  \Language{r} &= \{ u \Seq v \mid u \in \Language{s} \land v \in \Language{t}\}
+  \end{aligned}
+\end{equation*}
+\end{tcolorbox}
 
+\begin{tcolorbox}[title={Pravila}]
+\begin{equation*}
+  \begin{aligned}
+  s \Seq t &\not= t \Seq s\\
+  s \Seq \Null &= s \\
+  \Null \Seq s &= s   \\
+  s \Seq \Empty &= \Empty \\
+  \Empty \Seq s &= \Empty \\
+  (s \Seq p) \Seq q &= s \Seq (p \Seq q) = s \Seq p \Seq q
+  \end{aligned}
+\end{equation*}
+\end{tcolorbox}
+
+\vspace{1em}
 \Special{Poseben primer:} Če $|\Language{s}| = |\Language{t}| = 1$, potem $\Language{s} = \{u\}$ in $\Language{t} = \{v\}$ in $\Language{r} = \{u \Seq v\}$.
 
 \Ex
@@ -438,10 +516,6 @@ Splošno je jezik konkatenacije podoben kartezičnemu produktu.
 
 Edina razlika je da zamenjamo vsak $(u, v)$, kjer $u \in \Language{s}$ in $v\in \Language{t}$, z $u \Seq v \in \Language{r}$.
 
-\begin{equation*}
-  \Language{r} = \{ u \Seq v \mid u \in \Language{s} \land v \in \Language{t}\}
-\end{equation*}
-
 \Ex
 
 \begin{align*}
@@ -450,9 +524,12 @@ Edina razlika je da zamenjamo vsak $(u, v)$, kjer $u \in \Language{s}$ in $v\in 
   S &= \{\Str{DoberDan}, \Str{DoberVečer}, \Str{DoberTek}, \Str{LepDan}, \Str{LepVečer}, \Str{LepTek} \}
 \end{align*}
 
-Avtomat konkatenacije $\Automaton{r}$, dveh avtomatov $\Automaton{s}$ in $\Automaton{t}$, sestavimo tako, da povežemo končna stanja avtomata $\Automaton{s}$ s stanji, ki jih je mogoče direktno doseči iz začetnega stanja, v avtomatu $\Automaton{t}$ (vsakega z vsakim).
-Začetno stanje v avtomatu $\Automaton{t}$ odstranimo.
-Končna stanja v avtomatu za $\Automaton{s}$ označimo kot ne-končna, razen če je končno začetno stanje avtomata $\Automaton{t}$.
+Končni avtomat konkatenacije $\Automaton{r}$ dveh končnih avtomatov $\Automaton{s}$ in $\Automaton{t}$ sestavimo tako:
+\begin{enumerate}
+\item Povežemo končna stanja $\Automaton{s}$ s stanji, ki jih je mogoče direktno doseči iz začetnega stanja v $\Automaton{t}$ (vsakega z vsakim).
+\item Začetno stanje v končnem avtomatu $\Automaton{t}$ odstranimo.
+\item Končna stanja v $\Automaton{s}$ označimo kot ne-končna, razen če je končno začetno stanje $\Automaton{t}$.
+\end{enumerate}
 
 \begin{center}
   \begin{tikzpicture}
@@ -490,15 +567,15 @@ Končna stanja v avtomatu za $\Automaton{s}$ označimo kot ne-končna, razen če
 
 \Ex
 \begin{align*}
-  s_1 &= \Char{a} \\
-  t_1 &= \Char{b} \\
-  r_1 &= \Char{a} \Seq \Char{b} \\
+  \N{s} &= \Char{a} \\
+  \N{t} &= \Char{b} \\
+  \N{r} &= \Char{a} \Spc \Char{b} \\
 \end{align*}
 
 \begin{align*}
-  \Language{s_1} &= \{\Str{a}\} \\
-  \Language{t_1} &= \{\Str{b}\} \\
-  \Language{r_1} &= \{\Str{ab}\}
+  \Language{\N{s}} &= \{\Str{a}\} \\
+  \Language{\N{t}} &= \{\Str{b}\} \\
+  \Language{\N{r}} &= \{\Str{ab}\}
 \end{align*}
 
 \begin{center}
@@ -509,12 +586,12 @@ Končna stanja v avtomatu za $\Automaton{s}$ označimo kot ne-končna, razen če
       initial text=$ $
     }
 
-    \node[state, initial, label=above left:$\Automaton{s_1}$] (x0) {};
+    \node[state, initial, label=above left:$\Automaton{\N{s}}$] (x0) {};
     \node[state, accepting, right=of x0] (x1) {};
 
     \draw (x0) edge[->] node[auto]{$\Char{a}$} (x1);
 
-    \node[state, initial, label=above left:$\Automaton{t_1}$, below=of x0] (y0) {};
+    \node[state, initial, label=above left:$\Automaton{\N{t}}$, below=of x0] (y0) {};
     \node[state, accepting, right=of y0] (y1) {};
 
     \draw (y0) edge[->] node[auto]{$\Char{b}$} (y1);
@@ -532,7 +609,7 @@ Končna stanja v avtomatu za $\Automaton{s}$ označimo kot ne-končna, razen če
 
     \draw (q1) edge[->, bend right=60] node[auto]{$\Char{b}$} (p1);
 
-    \node[state, initial, label=above left:$\Automaton{r_1}$, below=1.5cm of q0] (s0) {};
+    \node[state, initial, label=above left:$\Automaton{\N{r}}$, below=1.5cm of q0] (s0) {};
     \node[state, right=of s0] (s1) {};
     \node[state, accepting, right=of s1] (s2) {};
 
@@ -540,19 +617,20 @@ Končna stanja v avtomatu za $\Automaton{s}$ označimo kot ne-končna, razen če
     \draw (s1) edge[->] node[auto]{$\Char{b}$} (s2);
   \end{tikzpicture}
 \end{center}
+\Next
 
 \Ex
 
 \begin{align*}
-  s_2 &= \Char{a} \Seq \Char{b} \\
-  t_2 &= \Char{c} \\
-  r_2 &= \Char{a} \Seq \Char{b} \Seq \Char{c} \\
+  \N{s} &= \Char{a} \Spc \Char{b} \\
+  \N{t} &= \Char{c} \\
+  \N{r} &= \Char{a} \Spc \Char{b} \Spc \Char{c} \\
 \end{align*}
 
 \begin{align*}
-  \Language{s_2} &= \{\Str{ab}\} \\
-  \Language{t_2} &= \{\Str{c}\} \\
-  \Language{r_2} &= \{\Str{abc}\}
+  \Language{\N{s}} &= \{\Str{ab}\} \\
+  \Language{\N{t}} &= \{\Str{c}\} \\
+  \Language{\N{r}} &= \{\Str{abc}\}
 \end{align*}
 
 \begin{center}
@@ -563,14 +641,14 @@ Končna stanja v avtomatu za $\Automaton{s}$ označimo kot ne-končna, razen če
       initial text=$ $
     }
 
-    \node[state, initial, label=above left:$\Automaton{s_2}$] (x0) {};
+    \node[state, initial, label=above left:$\Automaton{\N{s}}$] (x0) {};
     \node[state, right=of x0] (x1) {};
     \node[state, accepting, right=of x1] (x2) {};
 
     \draw (x0) edge[->] node[auto]{$\Char{a}$} (x1);
     \draw (x1) edge[->] node[auto]{$\Char{b}$} (x2);
 
-    \node[state, initial, label=above left:$\Automaton{t_2}$, below=of x0] (y0) {};
+    \node[state, initial, label=above left:$\Automaton{\N{t}}$, below=of x0] (y0) {};
     \node[state, accepting, right=of y0] (y1) {};
 
     \draw (y0) edge[->] node[auto]{$\Char{c}$} (y1);
@@ -590,7 +668,7 @@ Končna stanja v avtomatu za $\Automaton{s}$ označimo kot ne-končna, razen če
 
     \draw (q2) edge[->, bend right=60] node[auto]{$\Char{c}$} (p1);
 
-    \node[state, initial, label=above left:$\Automaton{r_2}$, below=1.5cm of q0] (s0) {};
+    \node[state, initial, label=above left:$\Automaton{\N{r}}$, below=1.5cm of q0] (s0) {};
     \node[state, right=of s0] (s1) {};
     \node[state, right=of s1] (s2) {};
     \node[state, accepting, right=of s2] (s3) {};
@@ -600,18 +678,19 @@ Končna stanja v avtomatu za $\Automaton{s}$ označimo kot ne-končna, razen če
     \draw (s2) edge[->] node[auto]{$\Char{c}$} (s3);
   \end{tikzpicture}
 \end{center}
+\Next
 
 \Ex
 \begin{align*}
-  s_3 &= \Char{a} \Seq \Char{b} \\
-  t_3 &= \Char{c} \Seq \Char{d} \\
-  r_3 &= \Char{a} \Seq \Char{b} \Seq \Char{c} \Seq \Char{d} \\
+  \N{s} &= \Char{a} \Spc \Char{b} \\
+  \N{t} &= \Char{c} \Spc \Char{d} \\
+  \N{r} &= \Char{a} \Spc \Char{b} \Spc \Char{c} \Spc \Char{d} \\
 \end{align*}
 
 \begin{align*}
-  \Language{s_3} &= \{\Str{ab}\} \\
-  \Language{t_3} &= \{\Str{cd}\} \\
-  \Language{r_3} &= \{\Str{abcd}\}
+  \Language{\N{s}} &= \{\Str{ab}\} \\
+  \Language{\N{t}} &= \{\Str{cd}\} \\
+  \Language{\N{r}} &= \{\Str{abcd}\}
 \end{align*}
 
 \begin{center}
@@ -622,14 +701,14 @@ Končna stanja v avtomatu za $\Automaton{s}$ označimo kot ne-končna, razen če
       initial text=$ $
     }
 
-    \node[state, initial, label=above left:$\Automaton{s_3}$] (x0) {};
+    \node[state, initial, label=above left:$\Automaton{\N{s}}$] (x0) {};
     \node[state, right=of x0] (x1) {};
     \node[state, accepting, right=of x1] (x2) {};
 
     \draw (x0) edge[->] node[auto]{$\Char{a}$} (x1);
     \draw (x1) edge[->] node[auto]{$\Char{b}$} (x2);
 
-    \node[state, initial, label=above left:$\Automaton{t_3}$, below=of x0] (y0) {};
+    \node[state, initial, label=above left:$\Automaton{\N{t}}$, below=of x0] (y0) {};
     \node[state, right=of y0] (y1) {};
     \node[state, accepting, right=of y1] (y2) {};
 
@@ -653,7 +732,7 @@ Končna stanja v avtomatu za $\Automaton{s}$ označimo kot ne-končna, razen če
 
     \draw (q2) edge[->, bend right=60] node[auto]{$\Char{c}$} (p1);
 
-    \node[state, initial, label=above left:$\Automaton{r_3}$, below=1.5cm of q0] (s0) {};
+    \node[state, initial, label=above left:$\Automaton{\N{r}}$, below=1.5cm of q0] (s0) {};
     \node[state, right=of s0] (s1) {};
     \node[state, right=of s1] (s2) {};
     \node[state, right=of s2] (s3) {};
@@ -665,40 +744,53 @@ Končna stanja v avtomatu za $\Automaton{s}$ označimo kot ne-končna, razen če
     \draw (s3) edge[->] node[auto]{$\Char{d}$} (s4);
   \end{tikzpicture}
 \end{center}
+\Next
 
 \subsection*{Primeri}
 
 \subsubsection{"then"}
 \begin{equation*}
-  \Language{r_4} = \{ \Str{then} \}
+  \Language{\N{r}} = \{ \Str{then} \}
 \end{equation*}
+\Next
 
-\subsubsection{Bajt po osmiško}
+\subsubsection{"then", "Then", "THEN", "theN", ...}
 Če so robovi avtomatov označeni z množico znakov, avtomat konkatenacije sestavimo na čisto enak način, kot če bi bil na robovih en sam znak.
+\begin{equation*}
+  \N{r} = \{\Char{T}, \Char{t}\} \Seq \{\Char{H}, \Char{h}\} \Seq \{\Char{E}, \Char{e}\} \Seq \{\Char{N}, \Char{n}\}
+\end{equation*}
+
+\Next
+\subsubsection{Bajt po osmiško}
 
 \begin{equation*}
-  r_5 = \{\Char{0}, \dots, \Char{3}\} \Seq \{\Char{0}, \dots, \Char{7}\} \Seq \{\Char{0}, \dots, \Char{7}\}
+  \N{r} = \{\Char{0}, \dots, \Char{3}\} \Seq \{\Char{0}, \dots, \Char{7}\} \Seq \{\Char{0}, \dots, \Char{7}\}
 \end{equation*}
 
 \begin{equation*}
-  \Language{r_5} = \{ \Str{000}, \Str{001}, \Str{002}, \dots, \Str{377} \}
+  \Language{\N{r}} = \{ \Str{000}, \Str{001}, \Str{002}, \dots, \Str{377} \}
 \end{equation*}
+\Next
 
-\subsection{Ponavljanje}
+\subsection{Potence}
+\Reset
 
+\begin{tcolorbox}[title={Definicija}]
+\begin{equation*}
+  \begin{aligned}
+    \Rep{s}{0} &= \Null\\
+    \Rep{s}{i+1} &= \Rep{s}{i} \Seq s\\[1em]
+    \Rep{s}{i} &= \underbrace{s \Seq \ldots \Seq s}_{i}\\[1em]
+    \Language{\Rep{s}{0}} &= \Null\\
+    \Language{\Rep{s}{i+1}} &= \{u \Seq v \mid u \in \Language{\Rep{s}{i}} \land v \in \Language{s}\}
+  \end{aligned}
+\end{equation*}
+\end{tcolorbox}
 \begin{align*}
-  r &= \Rep{s}{0} = \Null\\
-  r &= \underbrace{s \Seq \ldots \Seq s}_{i} = \Rep{s}{i}
 \end{align*}
 
-Začnemo z $\Null$ in $i$ krat konkateniramo $s$.
-
-\begin{equation*}
-  \Language{r} = \{ \underbrace{u \Seq \ldots \Seq u}_{i} \mid u \in \Language{s}\}
-\end{equation*}
-
-Avtomat $i$-kratnega ponavljanja avtomata $\Automaton{s}$, sestavimo tako, da konkateniramo $i$ kopij avtomata $\Automaton{s}$.
-Avtomat $\Automaton{s^0}$ je enak, kot avtomat za prazen stavek.
+Avtomat $\Automaton{\Rep{s}{i}}$ sestavimo tako, da konkateniramo $i$ kopij avtomata $\Automaton{s}$.
+Avtomat $\Automaton{\Rep{s}{0}}$ je enak, kot avtomat za prazen niz.
 
 \begin{center}
   \begin{tikzpicture}
@@ -739,47 +831,66 @@ Avtomat $\Automaton{s^0}$ je enak, kot avtomat za prazen stavek.
 \subsubsection{"aaaa"}
 
 \begin{align*}
-  s &= \Char{a} \\
-  r &= \Char{a}^4
+  \N{s} &= \Char{a} \\
+  \N{r} &= \Char{a}^4
 \end{align*}
 
 \begin{align*}
-  \Language{s} &= \{\Str{a}\} \\
-  \Language{r} &= \{\Str{aaaa}\} \\
+  \Language{\N{s}} &= \{\Str{a}\} \\
+  \Language{\N{r}} &= \{\Str{aaaa}\} \\
 \end{align*}
+\Next
 
 \subsubsection{"abab"}
 
 \begin{align*}
-  s &= \Char{a} \Seq \Char{b} \\
-  r &= (\Char{a} \Seq \Char{b})^2
+  \N{s} &= \Char{a} \Spc \Char{b} \\
+  \N{r} &= (\Char{a} \Spc \Char{b})^2
 \end{align*}
 
 \begin{align*}
-  \Language{s} &= \{\Str{ab}\} \\
-  \Language{r} &= \{\Str{abab}\} \\
+  \Language{\N{s}} &= \{\Str{ab}\} \\
+  \Language{\N{r}} &= \{\Str{abab}\} \\
 \end{align*}
+\Next
 
 \subsubsection{Bajt po osmiško}
 \begin{equation*}
-  r_5 = \Seq \{\Char{0}, \dots, \Char{3}\} \Seq (\{\Char{0}, \dots, \Char{7}\})^2
+  \N{r} = \{\Char{0}, \dots, \Char{3}\} \Seq (\{\Char{0}, \dots, \Char{7}\})^2
 \end{equation*}
+\Next
 
 \subsection{Unija}
-\begin{align*}
-  r &= s \Union t \\
-  \Empty \Union s &\equiv s \\
-  s \Union \Empty &\equiv s \\
-  (s \Union p) \Union q &\equiv s \Union (p \Union q) \equiv s \Union p \Union q \\
-  s \Union t &\equiv t \Union s
-\end{align*}
+\Reset
 
-\begin{equation*}
-  \Language{r} = \Language{s} \cup \Language{t}
-\end{equation*}
+\begin{tcolorbox}[title={Definicija}]
+  \begin{equation*}
+    \begin{aligned}
+    r &= s \Union t \\
+      \Language{r} &= \Language{s} \cup \Language{t}
+    \end{aligned}
+  \end{equation*}
+\end{tcolorbox}
 
-Avtomat unije $\Automaton{r}$ lahko sestavimo tako da ustvarimo novo začetno stanje in ga povežemo s stanji, ki jih je mogoče direktno doseči iz začetnega stanja pri avtomatih $\Automaton{s}$ in $\Automaton{t}$.
-Novo začetno stanje je končno, če je končno katero od začetnih stanj avtomatov $\Automaton{s}$ in $\Automaton{t}$.
+\begin{tcolorbox}[title={Pravila}]
+  \begin{equation*}
+    \begin{aligned}
+      s \Union t &= t \Union s \\
+      \Empty \Union s &= s \\
+      s \Union \Empty &= s \\
+      (s \Union p) \Union q &= s \Union (p \Union q) = s \Union p \Union q \\
+      s \Seq (p \Union q) &= s \Seq p \Union s \Seq q\\
+      (p \Union q) \Seq s &= p \Seq s \Union q \Seq s\\
+    \end{aligned}
+  \end{equation*}
+\end{tcolorbox}
+
+Končni avtomat unije $\Automaton{r}$ dveh končnih avtomatov $\Automaton{s}$ in $\Automaton{t}$ sestavimo tako:
+\begin{enumerate}
+\item Ustvarimo novo začetno stanje in ga povežemo s stanji, ki jih je mogoče direktno doseči iz začetnega stanja pri $\Automaton{s}$ in $\Automaton{t}$.
+\item Začetni stanji $\Automaton{s}$ in $\Automaton{t}$ odstranimo.
+\item Začetno stanje $\Automaton{r}$ je končno če je končno začetno stanje $\Automaton{s}$ ali $\Automaton{t}$.
+\end{enumerate}
 
 \begin{center}
   \begin{tikzpicture}
@@ -825,15 +936,15 @@ Novo začetno stanje je končno, če je končno katero od začetnih stanj avtoma
 
 \Ex
 \begin{align*}
-  s &= \Char{a} \Seq \Char{b} \\
-  t &= \Char{c} \Seq \Char{d} \\
-  r &= \Char{a} \Seq \Char{b} \Union \Char{c} \Seq \Char{d}
+  \N{s} &= \Char{a} \Spc \Char{b} \\
+  \N{t} &= \Char{c} \Spc \Char{d} \\
+  \N{r} &= \Char{a} \Spc \Char{b} \Union \Char{c} \Spc \Char{d}
 \end{align*}
 
 \begin{align*}
-  \Language{s} &= \{\Str{ab}\} \\
-  \Language{t} &= \{\Str{cd}\} \\
-  \Language{r} &= \{\Str{ab}, \Str{cd}\} \\
+  \Language{\N{s}} &= \{\Str{ab}\} \\
+  \Language{\N{t}} &= \{\Str{cd}\} \\
+  \Language{\N{r}} &= \{\Str{ab}, \Str{cd}\} \\
 \end{align*}
 
 \begin{center}
@@ -844,14 +955,14 @@ Novo začetno stanje je končno, če je končno katero od začetnih stanj avtoma
       initial text=$ $
     }
 
-    \node[state, initial, label=above left:$\Automaton{s}$] (x0) {};
+    \node[state, initial, label=above left:$\Automaton{\N{s}}$] (x0) {};
     \node[state, right=of x0] (x1) {};
     \node[state, accepting, right=of x1] (x2) {};
 
     \draw (x0) edge[->] node[auto]{$\Char{a}$} (x1);
     \draw (x1) edge[->] node[auto]{$\Char{b}$} (x2);
 
-    \node[state, initial, label=above left:$\Automaton{t}$, below=of x0] (y0) {};
+    \node[state, initial, label=above left:$\Automaton{\N{t}}$, below=of x0] (y0) {};
     \node[state, right=of y0] (y1) {};
     \node[state, accepting, right=of y1] (y2) {};
 
@@ -879,7 +990,7 @@ Novo začetno stanje je končno, če je končno katero od začetnih stanj avtoma
     \draw (n) edge[->, out=10+0, in=-150+0] node[auto] {$\Char{a}$} (q1);
     \draw (n) edge[->, out=-10+0, in=150+0] node[auto] {$\Char{c}$} (p1);
 
-    \node[state, initial, below=2.5cm of p0, label=above left:$\Automaton{r}$] (u0) {};
+    \node[state, initial, below=2.5cm of p0, label=above left:$\Automaton{\N{r}}$] (u0) {};
     \node[state, above right=of u0] (u1) {};
     \node[state, accepting, right=of u1] (u2) {};
 
@@ -894,18 +1005,17 @@ Novo začetno stanje je končno, če je končno katero od začetnih stanj avtoma
 
   \end{tikzpicture}
 \end{center}
+\Next
 
-\Special{Poseben primer:} Če so znaki na robovih, ki izhajajo iz začetnih stanj avtomatov $\Automaton{s}$ in $\Automaton{t}$ različni, potem bo avtomat determinističen.
-
-\Special{Poseben primer:} Če sta $s$ in $t$ sestavljena samo z uporabo unije in konkatenacije potem je nastali avtomat unije $\Automaton{r}$ drevo predpon.
+\Special{Poseben primer:} Če nizi v $\Language{s}$ in $\Language{t}$ nimajo skupne predpone bodo znaki na robovih, ki izhajajo iz začetnih stanj $\Automaton{s}$ in $\Automaton{t}$ različni. Nastali končni avtomat bo posledično determinističen.
 
 \Ex
 
 \begin{align*}
-  s &= \Char{a} \Seq \Char{b} \\
-  p &= \Char{a} \Seq \Char{b} \Seq \Char{c} \\
-  t &= \Char{a} \Seq \Char{c} \Seq \Char{d} \\
-  r &= s \Union p \Union t \\
+  \N{s} &= \Char{a} \Spc \Char{b} \\
+  \N{p} &= \Char{a} \Spc \Char{b} \Spc \Char{c} \\
+  \N{t} &= \Char{a} \Spc \Char{c} \Spc \Char{d} \\
+  \N{r} &= \N{s} \Union \N{p} \Union \N{t} \\
 \end{align*}
 
 \begin{center}
@@ -916,7 +1026,52 @@ Novo začetno stanje je končno, če je končno katero od začetnih stanj avtoma
       initial text=$ $
     }
 
-    \node[state, initial, label=above left:$\Automaton{r}$] (u0) {};
+    \node[state, initial, label=above left:$\Automaton{\N{r}}$] (u0) {};
+    \node[state, right=of u0] (u1) {};
+    \node[state, right=of u1] (u2) {};
+    \draw (u0) edge[->] node[auto]{$\Char{a}$} (u1);
+    \draw (u1) edge[->] node[auto]{$\Char{b}$} (u2);
+
+    \node[state, accepting, right=of u2] (u3) {};
+    \draw (u2) edge[->] node[auto]{$\Char{c}$} (u3);
+
+    \node[state, below right=of u0] (u6) {};
+
+    \node[state, right=of u6] (u4) {};
+    \node[state, accepting, right=of u4] (u5) {};
+
+    \draw (u0) edge[->] node[auto]{$\Char{a}$} (u6);
+    \draw (u6) edge[->] node[auto]{$\Char{c}$} (u4);
+    \draw (u4) edge[->] node[auto]{$\Char{d}$} (u5);
+
+    \node[state, above right=of u0] (u7) {};
+    \node[state, accepting, right=of u7] (u8) {};
+
+    \draw (u0) edge[->] node[auto]{$\Char{a}$} (u7);
+    \draw (u7) edge[->] node[auto]{$\Char{b}$} (u8);
+
+  \end{tikzpicture}
+\end{center}
+
+\subsection*{Leva faktorizacija}
+Skupno predpono izpostavimo.
+
+\Ex
+\begin{align*}
+  \N{r} &= \Char{a} \Spc \Char{b} \Union \Char{a} \Spc \Char{b} \Spc \Char{c} \Union \Char{a} \Spc \Char{c} \Spc \Char{d}\\
+        &= \Char{a} \Seq (\Char{b} \Union \Char{b} \Spc \Char{c} \Union \Char{c})\\
+        &= \Char{a} \Seq (\Char{b} \Seq (\Null \Union \Char{c}) \Union \Char{c})
+\end{align*}
+
+\begin{center}
+  \begin{tikzpicture}
+    \tikzset{
+      node distance=1cm,
+      every state/.append style={minimum size=0.5cm},
+      initial text=$ $
+    }
+
+    \node[state, initial, label=above left:$\Automaton{\N{r}}$] (u0) {};
     \node[state, right=of u0] (u1) {};
     \node[state, accepting, right=of u1] (u2) {};
     \draw (u0) edge[->] node[auto]{$\Char{a}$} (u1);
@@ -934,28 +1089,27 @@ Novo začetno stanje je končno, če je končno katero od začetnih stanj avtoma
   \end{tikzpicture}
 \end{center}
 
-Splošno lahko sestavimo avtomat unije z uporabo konstrukcije kartezičnega produkta (stanja nastalega avtomata bodo elementi kartezičnega produkta stanj vhodnih avtomatov):
-\begin{algorithm}
-  input: $(Q_1, \Sigma, \delta_1, q_{0,1}, F_1)$, $(Q_2, \Sigma, \delta_2, q_{0,2}, F_2)$
-  output: $(Q, \Sigma, \delta, q_{0}, F)$
-  $q_0$ $\gets$ $(q_{0,1}, q_{0,2})$
 
-  $Q$ $\gets$ $\{q_0\}$
-  $\delta$ $\gets$ $\emptyset$
-  foreach $q = (q_1, q_2) \in Q$
-    foreach $a \in \Sigma$
-      $q'$ $\gets$ $(\delta_1(q_1, a), \delta_2(q_2, a))$
-      $Q$ $\gets$ $Q \cup \{q'\}$
-      $\delta$ $\gets$ $\delta \cup \{(q, a) \mapsto q'\}$
-  $F$ $\gets$ $\{(q_1, q_2) \in Q \mid q_1 \in F_1 \lor q_2 \in F_2\}$
-\end{algorithm}
+\Special{Poseben primer:} Če sta $s$ in $t$ sestavljena samo z uporabo unije in konkatenacije potem je nastali avtomat unije $\Automaton{r}$ drevo predpon.
+
+
+\subsection*{Konstrukcija kartezičnega produkta}
+Vhod sta $\Automaton{s} = (Q_1, \Alphabet, \delta_1, q_{0,1}, F_1)$ in $\Automaton{t} =(Q_2, \Alphabet, \delta_2, q_{0,2}, F_2)$.
+
+Izhod je nov automat $\Automaton{r} = (Q, \Sigma, \delta, q_{0}, F)$, katerega stanja so kartezični produkt stanj $\Automaton{s}$ in $\Automaton{t}$.
+
+\begin{enumerate}
+  \item Začnemo s $q_0 = (q_{0,1}, q_{0,2})$, ki je začetno stanje.
+  \item Za vsak znak $\Char{a} \in \Alphabet$, iz trenutnega stanja $q = (q_1, q_2)$ pridobimo nova stanja:
+    \begin{equation*}
+      q' = (\delta_1(q_1, a), \delta_2(q_2, a))
+    \end{equation*}
+  \item Za vsako novo stanje dodamo prehod $\delta(q, \Char{a}) = q'$.
+  \item Postopek nadaljujemo za vsa tako nastala stanja, ki jih še nismo obravnavali.
+  \item Stanje $q = (q_1, q_2)$ je končno, če je $q_1$ ali $q_2$ končno stanje.
+\end{enumerate}
+
 Konstrukcija ustvari avtomat, ki se obnaša enako, kot če bi oba vhodna avtomata pognali hkrati.
-Začnemo v stanju, ki je par začetnih stanj vhodnih avtomatov $(q_{0,1}, q_{0,2})$.
-Na vsaki točki v postopku obravnavamo stanje $q$.
-Pogledamo v katera stanja $q'$ lahko pridemo iz $q$ z uporabo vseh možnih znakov v abecedi $\Sigma$.
-Za vsak $q'$, prvi element para $q' = (q'_1, q'_2)$ dobimo tako, da naredimo prehod z uporabo funkcije prehodov prvega avtomata $\delta_1$, drugi element pa tako, da naredimo prehod z uporabo funkcije prehodov drugega avtomata $\delta_2$.
-Postopek nadaljujemo za vsa tako nastala stanja, ki jih še nismo obravnavali.
-Stanje v nastalem avtomatu $q = (q_1, q_2)$ je končno, če je $q_1$ ali $q_2$ končno stanje.
 
 \Ex
 
@@ -994,15 +1148,15 @@ Stanje v nastalem avtomatu $q = (q_1, q_2)$ je končno, če je $q_1$ ali $q_2$ k
 
     \node[state, initial, below=2cm of z0, label=above left:$\Automaton{r}$] (u0) {$(1,1,1)$};
     \node[state, right=of u0] (u1) {$(2, 2, 2)$};
-    \node[state, accepting, right=of u1] (u2) {$(3,3,\dag)$};
+    \node[state, accepting, right=of u1] (u2) {$(3,3,\Err)$};
     \draw (u0) edge[->] node[auto]{$\Char{a}$} (u1);
     \draw (u1) edge[->] node[auto]{$\Char{b}$} (u2);
 
-    \node[state, accepting, above right=of u2] (u3) {$(\dag, 4, \dag)$};
+    \node[state, accepting, above right=of u2] (u3) {$(\Err, 4, \Err)$};
     \draw (u2) edge[->] node[auto]{$\Char{c}$} (u3);
 
-    \node[state, below right=of u1] (u4) {$(\dag,\dag,3)$};
-    \node[state, accepting, right=of u4] (u5) {$(\dag,\dag,4)$};
+    \node[state, below right=of u1] (u4) {$(\Err,\Err,3)$};
+    \node[state, accepting, right=of u4] (u5) {$(\Err,\Err,4)$};
 
     \draw (u1) edge[->] node[auto]{$\Char{c}$} (u4);
     \draw (u4) edge[->] node[auto]{$\Char{d}$} (u5);
@@ -1011,31 +1165,35 @@ Stanje v nastalem avtomatu $q = (q_1, q_2)$ je končno, če je $q_1$ ali $q_2$ k
 
 Za $(q_1, q_2) \in Q$, če $\acc_1(q_1) \neq \acc_2(q_2)$ potem kot $\acc((q_1, q_2))$ izberemo ali $\acc_1(q_1)$ ali $\acc_2(q_2)$ glede na prioriteto.
 Na primer, če združimo avtomata za imena spremenljivk in za ključne besede, vedno izberemo vrednost, ki ustreza avtomatu za ključne besede.
+\Next
 
 \subsection*{Primeri}
 \subsubsection{Ključne besede}
 
 \begin{align*}
-  s &= \Char{i} \Seq \Char{f} \\
-  p &= \Char{f} \Seq \Char{o} \Seq \Char{r} \\
-  t &= \Char{f} \Seq \Char{o} \Seq \Char{r} \Seq \Char{e} \Seq \Char{a} \Seq \Char{c} \Seq \Char{h} \\
-  r &= s \Union p \Union t
+  \N{s} &= \Char{i} \Spc \Char{f} \\
+  \N{p} &= \Char{f} \Spc \Char{o} \Spc \Char{r} \\
+  \N{t} &= \Char{f} \Spc \Char{o} \Spc \Char{r} \Spc \Char{e} \Spc \Char{a} \Spc \Char{c} \Spc \Char{h} \\
+  \N{r} &= \N{s} \Union \N{p} \Union \N{t}
 \end{align*}
+\Next
 
 \subsection{Opcija}
+\Reset
 
-\begin{equation*}
-  r = \Null \Union s = \Opt{s}
-\end{equation*}
+\begin{tcolorbox}[title={Definicija}]
+  \begin{equation*}
+    \begin{aligned}
+      \Opt{s} &= \Null \Union s\\
+      \Language{\Opt{s}} &= \{\Str{}\} \cup \Language{s}
+    \end{aligned}
+  \end{equation*}
+\end{tcolorbox}
 
 Ujemanje $s$ 0 ali 1 krat.
 
-\begin{equation*}
-  \Language{r} = \{\Str{}\} \cup \Language{s}
-\end{equation*}
-
-Avtomat opcije $\Automaton{r}$ lahko sestavimo kot unijo $\Automaton{\Null}$ in $\Automaton{s}$.
-Obstaja pa tudi lažji način, $\Automaton{r}$ dobimo tudi, če označimo začetno stanje avtomata $\Automaton{s}$ kot končno.
+Končni avtomat opcije $\Automaton{\Opt{s}}$ lahko sestavimo kot unijo $\Automaton{\Null}$ in $\Automaton{s}$.
+Obstaja pa tudi lažji način, $\Automaton{\Opt{s}}$ dobimo tudi, če označimo začetno stanje avtomata $\Automaton{s}$ kot končno.
 
 \begin{center}
   \begin{tikzpicture}
@@ -1053,7 +1211,7 @@ Obstaja pa tudi lažji način, $\Automaton{r}$ dobimo tudi, če označimo začet
     \node[state, accepting, right=1.5cm of s0] (sn) {};
 
     \begin{pgfonlayer}{background}
-      \node[fit=(s0) (s1) (s2) (sn), ellip, draw=red!40, fill=red!20, label=above:$\Automaton{s}$] (qm) {};
+      \node[fit=(s0) (s1) (s2) (sn), ellip, draw=red!40, fill=red!20, label=above:$\Automaton{\Opt{s}}$] (qm) {};
     \end{pgfonlayer}
 
   \end{tikzpicture}
@@ -1068,14 +1226,14 @@ Obstaja pa tudi lažji način, $\Automaton{r}$ dobimo tudi, če označimo začet
       initial text=$ $
     }
 
-    \node[state, initial, label=above left:$\Automaton{s}$] (x0) {};
+    \node[state, initial, label=above left:$\Automaton{\N{s}}$] (x0) {};
     \node[state, right=of x0] (x1) {};
     \node[state, accepting, right=of x1] (x2) {};
 
     \draw (x0) edge[->] node[auto]{$\Char{a}$} (x1);
     \draw (x1) edge[->] node[auto]{$\Char{b}$} (x2);
 
-    \node[state, initial, accepting, label=above left:$\Automaton{r}$, below=of x0] (y0) {};
+    \node[state, initial, accepting, label=above left:$\Automaton{\N{r}}$, below=of x0] (y0) {};
     \node[state, right=of y0] (y1) {};
     \node[state, accepting, right=of y1] (y2) {};
 
@@ -1085,36 +1243,50 @@ Obstaja pa tudi lažji način, $\Automaton{r}$ dobimo tudi, če označimo začet
 \end{center}
 
 \begin{align*}
-  s &= \Char{a} \Seq \Char{b} \\
-  r &= (\Char{a} \Seq \Char{b})?
+  \N{s} &= \Char{a} \Spc \Char{b} \\
+  \N{r} &= (\Char{a} \Spc \Char{b})?
 \end{align*}
 
 \begin{align*}
-  \Language{s} &= \{\Str{ab}\} \\
-  \Language{r} &= \{\Str{}, \Str{ab}\} \\
+  \Language{\N{s}} &= \{\Str{ab}\} \\
+  \Language{\N{r}} &= \{\Str{}, \Str{ab}\} \\
 \end{align*}
 
 \subsection{Kleene-ovo zaprtje}
+\Reset
 
-\begin{align*}
-  r &= \Kleene{s} \\
-  r &= \Null \Union s \Union s \Seq s \Union s \Seq s \Seq s \Union \ldots
-\end{align*}
+\begin{tcolorbox}[title={Definicija}]
+  \begin{equation*}
+    \begin{aligned}
+      \Kleene{s} &= \Null \Union s \Union s \Seq s \Union s \Seq s \Seq s \Union \ldots \\
+      &= \Rep{s}{0} \Union \Rep{s}{1} \Union \Rep{s}{2} \Union \ldots \\
+      &= \Big\vert_{i = 0}^\infty \Rep{s}{i}\\
+      \Language{\Kleene{s}} &= \bigcup_{i = 0}^\infty \Language{s^i}
+    \end{aligned}
+  \end{equation*}
+\end{tcolorbox}
 
 Ujemanje $s$ 0 ali več krat.
-
-\begin{equation*}
-  r = \Rep{s}{0} \Union \Rep{s}{1} \Union \Rep{s}{2} \Union \ldots = \Big\vert_{i = 0}^\infty \Rep{s}{i}
-\end{equation*}
-
 Z drugimi besedami, $s$ je lahko ponovljen $0, 1, 2, \dots, \infty$ krat.
 
-\begin{equation*}
-  \Language{r} = \bigcup_{i = 0}^\infty \Language{s^i}
-\end{equation*}
+\begin{tcolorbox}[title={Pravila}]
+  \begin{equation*}
+    \begin{aligned}
+      \Kleene{\Empty} &= \Null\\
+      \Kleene{\Null} &= \Null\\
+      \Kleene{(\Kleene{s})} &= \Kleene{s}\\
+      \Kleene{(s \Union t)} &= \Kleene{(\Kleene{s} \Seq t)} \Seq \Kleene{s}\\
+      \Kleene{(s \Seq t)} &= \Null \Union s \Seq \Kleene{(t \Seq s)} \Seq t\\
+      \Kleene{s} &= (\Null \Union s \Union ... \Union \Rep{s}{i - 1}) \Seq \Kleene{(\Rep{s}{i})}
+    \end{aligned}
+  \end{equation*}
+\end{tcolorbox}
 
-Avtomat za Kleeno-ovo zaprtje $\Automaton{r}$ sestavimo tako, da povežemo končna stanja avtomata $\Automaton{s}$ s stanji, ki jih je mogoče direktno doseči iz začetnega stanja istega avtomata (vsakega z vsakim).
-Začetno stanje avtomata $\Automaton{s}$ označimo kot končno.
+Končni avtomat za Kleeno-ovo zaprtje $\Automaton{\Kleene{s}}$ sestavimo tako:
+\begin{enumerate}
+  \item Končna stanja $\Automaton{s}$ povežemo s stanji, ki jih je mogoče direktno doseči iz začetnega stanja istega avtomata (vsakega z vsakim).
+  \item Začetno stanje $\Automaton{\Kleene{s}}$ označimo kot končno.
+\end{enumerate}
 
 \begin{center}
   \begin{tikzpicture}
@@ -1136,7 +1308,7 @@ Začetno stanje avtomata $\Automaton{s}$ označimo kot končno.
     \draw (sn) edge[->, controls={+(1.5,2.5) and +(0.9, 2.5)}] (s2);
 
     \begin{pgfonlayer}{background}
-      \node[fit=(s0) (s1) (s2) (sn), ellip, draw=red!40, fill=red!20, label=above left:$\Automaton{s}$] (qm) {};
+      \node[fit=(s0) (s1) (s2) (sn), ellip, draw=red!40, fill=red!20, label=above left:$\Automaton{\Kleene{s}}$] (qm) {};
     \end{pgfonlayer}
 
   \end{tikzpicture}
@@ -1144,13 +1316,13 @@ Začetno stanje avtomata $\Automaton{s}$ označimo kot končno.
 
 \Ex
 \begin{align*}
-  s_1 &= \Char{a} \\
-  r_1 &= \Kleene{\Char{a}}
+  \N{s} &= \Char{a} \\
+  \N{r} &= \Kleene{\Char{a}}
 \end{align*}
 
 \begin{align*}
-  \Language{s_1} &= \{\Str{a}\} \\
-  \Language{r_1} &= \{\Str{}, \Str{a}, \Str{aa}, \Str{aaa}, \dots\} \\
+  \Language{\N{s}} &= \{\Str{a}\} \\
+  \Language{\N{r}} &= \{\Str{}, \Str{a}, \Str{aa}, \Str{aaa}, \dots\} \\
 \end{align*}
 
 \begin{center}
@@ -1162,28 +1334,29 @@ Začetno stanje avtomata $\Automaton{s}$ označimo kot končno.
       initial text=$ $
     }
 
-    \node[state, initial, label=above left:$\Automaton{s_1}$] (q0) {};
+    \node[state, initial, label=above left:$\Automaton{\N{s}}$] (q0) {};
     \node[state, accepting, right=of q0] (q1) {};
 
     \draw (q0) edge node[auto]{$\Char{a}$} (q1);
 
-    \node[state, accepting, initial, label=above left:$\Automaton{r_1}$, below=1.5cm of q0] (p0) {};
+    \node[state, accepting, initial, label=above left:$\Automaton{\N{r}}$, below=1.5cm of q0] (p0) {};
     \node[state, accepting, right=of p0] (p1) {};
 
     \draw (p0) edge node[auto]{$\Char{a}$} (p1);
     \draw (p1) edge[loop] node[above]{$\Char{a}$} (p1);
   \end{tikzpicture}
 \end{center}
+\Next
 
 \Ex
 \begin{align*}
-  s_2 &= \Char{a} \Seq \Char{b} \\
-  r_2 &= \Kleene{(\Char{a} \Seq \Char{b})}
+  \N{s} &= \Char{a} \Spc \Char{b} \\
+  \N{r} &= \Kleene{(\Char{a} \Spc \Char{b})}
 \end{align*}
 
 \begin{align*}
-  \Language{s_2} &= \{\Str{ab}\} \\
-  \Language{r_2} &= \{\Str{}, \Str{ab}, \Str{abab}, \Str{ababab}, \dots\} \\
+  \Language{\N{s}} &= \{\Str{ab}\} \\
+  \Language{\N{r}} &= \{\Str{}, \Str{ab}, \Str{abab}, \Str{ababab}, \dots\}
 \end{align*}
 
 \begin{center}
@@ -1211,27 +1384,26 @@ Začetno stanje avtomata $\Automaton{s}$ označimo kot končno.
     \draw (p2) edge[bend right=70] node[above]{$\Char{a}$} (p1);
   \end{tikzpicture}
 \end{center}
+\Next
 
 \subsection{Pozitivno zaprtje}
+\Reset
 
-\begin{align*}
-  r &= \KleenePlus{s} \\
-  r &= s \Union s \Seq s \Union s \Seq s \Seq s \Union \ldots\\
-  \Kleene{s} &\equiv \Null \Union \KleenePlus{s} \equiv \Opt{(\KleenePlus{s})} \equiv \KleenePlus{(\Opt{s})}
-\end{align*}
+\begin{tcolorbox}[title={Definicija}]
+  \begin{equation*}
+    \begin{aligned}
+      \KleenePlus{s} &= s \Union s \Seq s \Union s \Seq s \Seq s \Union \ldots \\
+      &= \Rep{s}{1} \Union \Rep{s}{2} \Union \ldots \\
+      &= \Big\vert_{i = 1}^\infty \Rep{s}{i}\\
+      \Language{\KleenePlus{s}} &= \bigcup_{i = 1}^\infty \Language{s^i}\\[1em]
+      \Kleene{s} &= \Null \Union \KleenePlus{s} = \Opt{(\KleenePlus{s})} = \KleenePlus{(\Opt{s})}\\
+      \Language{\Kleene{r}} &= \{\Str{}\} \cup \Language{\KleenePlus{r}}
+    \end{aligned}
+  \end{equation*}
+\end{tcolorbox}
 
 Ujemanje $s$ 1 ali več krat.
-
-\begin{equation*}
-  r = \Rep{s}{1} \Union \Rep{s}{2} \Union \ldots = \Big\vert_{i = 1}^\infty \Rep{s}{i}
-\end{equation*}
-
 Z drugimi besedami, $s$ je lahko ponovljen $1, 2, \dots, \infty$ krat.
-
-\begin{align*}
-  \Language{r} &= \bigcup_{i = 1}^\infty \Language{s^i} \\
-  \Language{\Kleene{r}} &= \{\Str{}\} \cup \Language{\KleenePlus{r}}
-\end{align*}
 
 Avtomat pozitivnega zaprtja sestavimo enako, kot za Kleene-ovo zaprtje, z razliko, da pustimo začetno stanje brez sprememb.
 \begin{center}
@@ -1254,7 +1426,7 @@ Avtomat pozitivnega zaprtja sestavimo enako, kot za Kleene-ovo zaprtje, z razlik
     \draw (sn) edge[->, controls={+(1.5,2.5) and +(0.9, 2.5)}] (s2);
 
     \begin{pgfonlayer}{background}
-      \node[fit=(s0) (s1) (s2) (sn), ellip, draw=red!40, fill=red!20, label=above left:$\Automaton{s}$] (qm) {};
+      \node[fit=(s0) (s1) (s2) (sn), ellip, draw=red!40, fill=red!20, label=above left:$\Automaton{\KleenePlus{s}}$] (qm) {};
     \end{pgfonlayer}
 
   \end{tikzpicture}
@@ -1262,13 +1434,13 @@ Avtomat pozitivnega zaprtja sestavimo enako, kot za Kleene-ovo zaprtje, z razlik
 
 \Ex
 \begin{align*}
-  s_1 &= \Char{a} \\
-  r_1 &= \KleenePlus{\Char{a}}
+  \N{s} &= \Char{a} \\
+  \N{r} &= \KleenePlus{\Char{a}}
 \end{align*}
 
 \begin{align*}
-  \Language{s_1} &= \{\Str{a}\} \\
-  \Language{r_1} &= \{\Str{a}, \Str{aa}, \Str{aaa}, \dots\} \\
+  \Language{\N{s}} &= \{\Str{a}\} \\
+  \Language{\N{r}} &= \{\Str{a}, \Str{aa}, \Str{aaa}, \dots\} \\
 \end{align*}
 
 \begin{center}
@@ -1280,28 +1452,29 @@ Avtomat pozitivnega zaprtja sestavimo enako, kot za Kleene-ovo zaprtje, z razlik
       initial text=$ $
     }
 
-    \node[state, initial, label=above left:$\Automaton{s_1}$] (q0) {};
+    \node[state, initial, label=above left:$\Automaton{\N{s}}$] (q0) {};
     \node[state, accepting, right=of q0] (q1) {};
 
     \draw (q0) edge node[auto]{$\Char{a}$} (q1);
 
-    \node[state, initial, label=above left:$\Automaton{s_1}$, below=1.5cm of q0] (p0) {};
+    \node[state, initial, label=above left:$\Automaton{\N{r}}$, below=1.5cm of q0] (p0) {};
     \node[state, accepting, right=of p0] (p1) {};
 
     \draw (p0) edge node[auto]{$\Char{a}$} (p1);
     \draw (p1) edge[loop] node[above]{$\Char{a}$} (p1);
   \end{tikzpicture}
 \end{center}
+\Next
 
 \Ex
 \begin{align*}
-  s_2 &= \Char{a}? \\
-  r_2 &= \KleenePlus{(\Char{a}?)}
+  \N{s} &= \Char{a}? \\
+  \N{r} &= \KleenePlus{(\Char{a}?)}
 \end{align*}
 
 \begin{align*}
-  \Language{s_2} &= \{\Str{}, \Str{a}\} \\
-  \Language{r_2} &= \{\Str{}, \Str{a}, \Str{aa}, \Str{aaa}, \dots\} \\
+  \Language{\N{s}} &= \{\Str{}, \Str{a}\} \\
+  \Language{\N{r}} &= \{\Str{}, \Str{a}, \Str{aa}, \Str{aaa}, \dots\} \\
 \end{align*}
 
 \begin{center}
@@ -1313,57 +1486,64 @@ Avtomat pozitivnega zaprtja sestavimo enako, kot za Kleene-ovo zaprtje, z razlik
       initial text=$ $
     }
 
-    \node[state, accepting, initial, label=above left:$\Automaton{s_2}$] (q0) {};
+    \node[state, accepting, initial, label=above left:$\Automaton{\N{s}}$] (q0) {};
     \node[state, accepting, right=of q0] (q1) {};
 
     \draw (q0) edge node[auto]{$\Char{a}$} (q1);
 
-    \node[state, accepting, initial, label=above left:$\Automaton{s_2}$, below=1.5cm of q0] (p0) {};
+    \node[state, accepting, initial, label=above left:$\Automaton{\N{r}}$, below=1.5cm of q0] (p0) {};
     \node[state, accepting, right=of p0] (p1) {};
 
     \draw (p0) edge node[auto]{$\Char{a}$} (p1);
     \draw (p1) edge[loop] node[above]{$\Char{a}$} (p1);
   \end{tikzpicture}
 \end{center}
+\Next
 
 \subsection*{Primeri}
 \subsubsection{Števila}
 \begin{align*}
-  s &= \{\Char{0}, \dots, \Char{9}\} \\
-  r &= \KleenePlus{s}
+  \N{s} &= \{\Char{0}, \dots, \Char{9}\} \\
+  \N{r} &= \KleenePlus{\N{s}}
 \end{align*}
-
-\subsubsection{Cela števila}
-\begin{align*}
-  s &= \{\Char{0}, \dots, \Char{9}\} \\
-  r &= (\Char{+} \Union \Char{-}) \Seq \KleenePlus{s}
-\end{align*}
+\Next
 
 \subsubsection{Naravna števila}
 \begin{equation*}
-  \Language{r} = \{\Str{1}, \Str{2}, \dots\}
+  \Language{\N{r}} = \{\Str{1}, \Str{2}, \dots\}
 \end{equation*}
+\Next
+
+\subsubsection{Cela števila}
+\begin{align*}
+  \N{s} &= \{\Char{0}, \dots, \Char{9}\} \\
+  \N{r} &= (\Char{+} \Union \Char{-}) \Seq \KleenePlus{\N{s}}
+\end{align*}
+\Next
 
 \subsubsection{Heksadecimalna števila}
 \begin{equation*}
-  \Language{r} = \{\Str{0x0}, \Str{0x1}, \dots, \Str{0xA}, \dots, \Str{0xFFFF}, \dots\}
+  \Language{\N{r}} = \{\Str{0x0}, \Str{0x1}, \dots, \Str{0xA}, \dots, \Str{0xFFFF}, \dots\}
 \end{equation*}
+\Next
 
 \subsubsection{Barve}
 \begin{equation*}
-  \Language{r} = \{\Str{\#000000}, \dots, \Str{\#FFFFFF}\}
+  \Language{\N{r}} = \{\Str{\#000000}, \dots, \Str{\#FFFFFF}\}
 \end{equation*}
+\Next
 
 \subsubsection{Števila s plavajočo vejico}
 \begin{align*}
-  s &= \{\Char{0}, \dots, \Char{9}\} \\
-  r &= (\Char{+} \Union \Char{-}) \Seq \KleenePlus{s} \Seq \Char{.} \Kleene{s}
+  \N{s} &= \{\Char{0}, \dots, \Char{9}\} \\
+  \N{r} &= (\Char{+} \Union \Char{-}) \Seq \KleenePlus{\N{s}} \Spc \Char{.} \Spc \Kleene{\N{s}}
 \end{align*}
+\Next
 
 \subsubsection{Imena spremenljivk}
 \begin{align*}
-  l &= \{\Char{a}, \dots, \Char{z}\} \\
-  r &= \KleenePlus{l}
+  \N{l} &= \{\Char{a}, \dots, \Char{z}\} \\
+  \N{r} &= \KleenePlus{\N{l}}
 \end{align*}
 
 \begin{center}
@@ -1375,31 +1555,32 @@ Avtomat pozitivnega zaprtja sestavimo enako, kot za Kleene-ovo zaprtje, z razlik
       initial text=$ $
     }
 
-    \node[state, initial, label=above left:$\Automaton{l}$] (q0) {};
+    \node[state, initial, label=above left:$\Automaton{\N{l}}$] (q0) {};
     \node[state, accepting, right=2cm of q0] (q1) {};
 
     \draw (q0) edge node[auto]{$\{\Char{a}, \dots, \Char{z}\}$} (q1);
 
-    \node[state, initial, label=above left:$\Automaton{r}$, below=2.0cm of q0] (p0) {};
+    \node[state, initial, label=above left:$\Automaton{\N{r}}$, below=2.0cm of q0] (p0) {};
     \node[state, accepting, right=2cm of p0] (p1) {};
 
     \draw (p0) edge node[auto]{$\{\Char{a}, \dots, \Char{z}\}$} (p1);
     \draw (p1) edge[loop] node[above]{$\{\Char{a}, \dots, \Char{z}\}$} (p1);
   \end{tikzpicture}
 \end{center}
+\Next
 
 \subsubsection{Ključne besede in imena spremenljivk}
 \begin{align*}
-  i &= \KleenePlus{\{\Char{a}, \dots, \Char{z}\}}\\
-  k &= \Char{a} \Seq \Char{b} \Union \Char{a} \Seq \Char{b} \Seq \Char{c} \Union \Char{a} \Seq \Char{c} \Seq \Char{d}\\
-  r &= i \Union k
+  \N{i} &= \KleenePlus{\{\Char{a}, \dots, \Char{z}\}}\\
+  \N{k} &= \Char{a} \Spc \Char{b} \Union \Char{a} \Spc \Char{b} \Spc \Char{c} \Union \Char{a} \Spc \Char{c} \Spc \Char{d}\\
+  \N{r} &= \N{i} \Union \N{k}
 \end{align*}
 
 \begin{align*}
-  \acc_i(2) &= 1 \\
-  \acc_k(3) &= 2 \\
-  \acc_k(4) &= 2 \\
-  \acc_k(6) &= 2 \\
+  \acc_{\N{i}}(2) &= 1 \\[1em]
+  \acc_{\N{k}}(3) &= 2 \\
+  \acc_{\N{k}}(4) &= 2 \\
+  \acc_{\N{k}}(6) &= 2 \\
 \end{align*}
 
 \begin{center}
@@ -1411,13 +1592,13 @@ Avtomat pozitivnega zaprtja sestavimo enako, kot za Kleene-ovo zaprtje, z razlik
       initial text=$ $
     }
 
-    \node[state, initial, label=above left:$\Automaton{i}$, below=2.0cm of q0] (p0) {1};
+    \node[state, initial, label=above left:$\Automaton{\N{i}}$, below=2.0cm of q0] (p0) {1};
     \node[state, accepting, right=2cm of p0] (p1) {2};
 
     \draw (p0) edge node[auto]{$\{\Char{a}, \dots, \Char{z}\}$} (p1);
     \draw (p1) edge[loop] node[above]{$\{\Char{a}, \dots, \Char{z}\}$} (p1);
 
-    \node[state, initial, label=above left:$\Automaton{k}$, below=1.5cm of p0] (u0) {1};
+    \node[state, initial, label=above left:$\Automaton{\N{k}}$, below=1.5cm of p0] (u0) {1};
     \node[state, right=of u0] (u1) {2};
     \node[state, accepting, right=of u1] (u2) {3};
     \draw (u0) edge[->] node[auto]{$\Char{a}$} (u1);
@@ -1443,7 +1624,7 @@ Avtomat pozitivnega zaprtja sestavimo enako, kot za Kleene-ovo zaprtje, z razlik
       initial text=$ $
     }
 
-    \node[state, initial, label=above left:$\Automaton{r}$] (v0) {$(1,1)$};
+    \node[state, initial, label=above left:$\Automaton{\N{r}}$] (v0) {$(1,1)$};
     \node[state, accepting, right=of v0] (v1) {(2,2)};
     \node[state, accepting, right=of v1] (v2) {$(2, 3)$};
     \draw (v0) edge[->] node[auto]{$\Char{a}$} (v1);
@@ -1458,7 +1639,7 @@ Avtomat pozitivnega zaprtja sestavimo enako, kot za Kleene-ovo zaprtje, z razlik
     \draw (v1) edge[->] node[auto]{$\Char{c}$} (v4);
     \draw (v4) edge[->] node[auto]{$\Char{d}$} (v5);
 
-    \node[state, accepting, above=2cm of v1] (s) {$(2, \dag)$};
+    \node[state, accepting, above=2cm of v1] (s) {$(2, \Err)$};
     \draw (v0) edge[->, bend left] node[auto]{$A - \{\Char{a}\}$} (s);
     \draw (v1) edge[->, bend right] node[auto]{$A - \{\Char{b}, \Char{c}\}$} (s);
     \draw (v2) edge[->, bend right] node[right]{$A - \{\Char{c}\}$} (s);
@@ -1471,43 +1652,42 @@ Avtomat pozitivnega zaprtja sestavimo enako, kot za Kleene-ovo zaprtje, z razlik
 \begin{equation*}
   A = \{\Char{a}, \dots, \Char{z}\}
 \end{equation*}
-
 \begin{align*}
-  \acc_r((2, \dag)) &= 1 \\
-  \acc_r((2, 2)) &= 1 \\
-  \acc_r((2, 3)) &= 2 \\
-  \acc_r((2, 4)) &= 2 \\
-  \acc_r((2, 5)) &= 1 \\
-  \acc_r((2, 6)) &= 2 \\
+  \acc_{\N{r}}((2, \Err)) &= 1 \\
+  \acc_{\N{r}}((2, 2)) &= 1 \\
+  \acc_{\N{r}}((2, 3)) &= 2 \\
+  \acc_{\N{r}}((2, 4)) &= 2 \\
+  \acc_{\N{r}}((2, 5)) &= 1 \\
+  \acc_{\N{r}}((2, 6)) &= 2 \\
 \end{align*}
 
-\Special{Poseben primer:} Potrebno je samo eno dodatno stanje $(2, \dag)$, v primerjavi z avtomatom za ključne besede.
-Stanje $(2, \dag)$ deluje kot ponor.
+\Special{Poseben primer:} Potrebno je samo eno dodatno stanje $(2, \Err)$, v primerjavi z avtomatom za ključne besede.
+Stanje $(2, \Err)$ deluje kot ponor.
 Množice znakov $A - D$ lahko implementiramo tako, da najprej naredimo vse povezave za A in jih potem "povozimo" s povezavami za D.
+\Next
 
-
-\section{Dodatno: Konstrukcija podmnožic}
-Pri vajah se bomo omejili na deterministične avtomate.
-Kljub temu pa je pravkar opisana konstrukcija dovolj splošna, da omogoča sestavo avtomatov za vse možne regularne izraze.
-Težava je le, da operatorji ne zagotavljajo, da bo nastali avtomat determinističen.
-Nedeterminističen avtomat lahko pretvorimo v determinističnega z uporabo konstrukcije podmnožic (stanja nastalega avtomata bodo označena s podmnožicami $Q$). 
-
-\begin{algorithm}
-  input: $(Q, \Sigma, \delta, q_{0}, F)$
-  output: $(Q', \Sigma, \delta', q'_{0}, F')$
-  $q'_0$ $\gets$ $\{q_{0}\}$
-
-  $Q'$ $\gets$ $\{q'_0\}$
-  $\delta'$ $\gets$ $\emptyset$
-  foreach $q' \in Q'$
-    foreach $q \in q'$
-      $q''$ $\gets$ $\emptyset$
-      foreach $a \in \Sigma$
-        $q''$ $\gets$ $q'' \cup \{\delta(q, a)\}$
-      $Q'$ $\gets$ $Q' \cup \{q'\}$
-      $\delta'$ $\gets$ $\delta' \cup \{(q', a) \mapsto q''\}$
-  $F'$ $\gets$ $\{q' \mid q' \in Q' \land q' \cap F \neq \emptyset \}$
-\end{algorithm}
+%\section{Dodatno: Konstrukcija podmnožic}
+%Pri vajah se bomo omejili na deterministične avtomate.
+%Kljub temu pa je pravkar opisana konstrukcija dovolj splošna, da omogoča sestavo avtomatov za vse možne regularne izraze.
+%Težava je le, da operatorji ne zagotavljajo, da bo nastali avtomat determinističen.
+%Nedeterminističen avtomat lahko pretvorimo v determinističnega z uporabo konstrukcije podmnožic (stanja nastalega avtomata bodo označena s podmnožicami $Q$). 
+%
+%\begin{algorithm}
+%  input: $(Q, \Sigma, \delta, q_{0}, F)$
+%  output: $(Q', \Sigma, \delta', q'_{0}, F')$
+%  $q'_0$ $\gets$ $\{q_{0}\}$
+%
+%  $Q'$ $\gets$ $\{q'_0\}$
+%  $\delta'$ $\gets$ $\emptyset$
+%  foreach $q' \in Q'$
+%    foreach $q \in q'$
+%      $q''$ $\gets$ $\emptyset$
+%      foreach $a \in \Sigma$
+%        $q''$ $\gets$ $q'' \cup \{\delta(q, a)\}$
+%      $Q'$ $\gets$ $Q' \cup \{q'\}$
+%      $\delta'$ $\gets$ $\delta' \cup \{(q', a) \mapsto q''\}$
+%  $F'$ $\gets$ $\{q' \mid q' \in Q' \land q' \cap F \neq \emptyset \}$
+%\end{algorithm}
 
 \printbibliography
 \end{document}

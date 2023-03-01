@@ -1,11 +1,16 @@
 let
-  pkgs = import (builtins.fetchGit { 
-    name = "nixpkgs-latex";
-    url = https://github.com/nixos/nixpkgs-channels/;
-    ref = "refs/heads/nixos-unstable";
-    # git ls-remote https://github.com/nixos/nixpkgs-channels nixos-unstable
-    rev = "ae6bdcc53584aaf20211ce1814bea97ece08a248";
-  }) {};
+  pkgs = import <nixpkgs> {};
+  cache = pkgs.makeFontsCache {
+    fontDirectories = pkgs.texlive.stix2-otf.pkgs;
+  };
+  config = pkgs.writeText "fonts.conf" ''
+    <?xml version="1.0"?>
+    <!DOCTYPE fontconfig SYSTEM "fonts.dtd">
+    <fontconfig>
+      <dir>${builtins.elemAt pkgs.texlive.stix2-otf.pkgs 0}</dir>
+      <cachedir>${cache}</cachedir>
+    </fontconfig>
+  '';
 in
 
 with pkgs;
@@ -14,8 +19,10 @@ stdenv.mkDerivation {
   name = "paper";
   src = ./src;
 
+  TEXMFVAR = "/tmp/texmf";
+  SOURCE_DATE_EPOCH = builtins.currentTime;
+
   preBuild = ''
-    export TEXMFVAR=/tmp/texmf
     mkdir -p $TEXMFVAR
   '';
 
@@ -24,11 +31,13 @@ stdenv.mkDerivation {
     cp paper.pdf $out
   '';
 
-  FONTCONFIG_FILE = pkgs.makeFontsConf { fontDirectories = pkgs.texlive.tex-gyre.pkgs; };
+  
+  FONTCONFIG_FILE = config;
 
   buildInputs = [
+    fontconfig
     (texlive.combine {
-      inherit (texlive) scheme-small luatex biblatex latexmk biber listings fontspec unicode-math;
+      inherit (texlive) scheme-small luatex biblatex latexmk stix2-otf biber unicode-math lualatex-math tcolorbox environ;
     })
   ];
 }
