@@ -10,6 +10,8 @@
 ]{STIXTwoText-Regular}
 \setmathfont{STIXTwoMath-Regular}
 
+\usepackage{mathdots}
+
 \setlength{\parindent}{0pt}
 \setlength{\parskip}{0.5em}
 
@@ -101,7 +103,7 @@ Jezik je (ne nujno končna) množica nizov.
 \end{equation*}
 
 \section{Regularni izrazi}
-Regularni izrazi so algebra nad jeziki, ki sestavljena iz operacij $(\Union)$, $(\Seq)$, $(\ast)$, $\Char{a}$, $\Empty$, $\Null$.
+Regularni izrazi so algebra nad jeziki, ki sestavljena iz osnovnih operacij $(\Union)$, $(\Seq)$, $(\ast)$ in elementov $\Char{a}$, $\Empty$, $\Null$.
 Z njimi lahko opišemo le podmnožico vseh jezikov, ki se imenuje "regularni jeziki".
 
 \section{Končni avtomati}
@@ -247,7 +249,37 @@ Za implementacijo pregledovalnika je potrebno končnemu avtomatu dodati funkcijo
   \acc: Q \rightarrow T
 \end{equation*}
 
+\section{Konstrukcija}
+
 \Special{Meta:} Jezik regularnega izraza $r$ bo označen kot $\Language{r}$.\\
+
+Regularni izraz v končni avtomat pretvorimo tako, da najprej ustvarimo končne avtomate za posamezne elemente $\Char{a}$, $\Empty$, $\Null$, ki jih nato s pomočjo pravil za konstrukcijo združujemo.
+
+%Pri opisani konstrukciji so vsi prehodi, ki vodijo v katero koli stanje stanje označeni z enakim znakom.
+%\begin{center}
+%  \begin{tikzpicture}
+%    \tikzset{
+%      ->,
+%      node distance=1cm,
+%      every state/.append style={minimum size=0.5cm},
+%      initial text=$ $
+%    }
+%
+%
+%    \node[state] (s) {};
+%
+%    \node[left=1 of s] (i1) {$\ldots$};
+%    \node[above left=1 of s] (i2) {$\ddots$};
+%    \node[below left=1 of s] (i3) {\reflectbox{$\ddots$}};
+%    \draw(i1) edge node[auto]{\Char{a}} (s);
+%    \draw(i2) edge node[auto]{\Char{a}} (s);
+%    \draw(i3) edge node[auto]{\Char{a}} (s);
+%
+%  \end{tikzpicture}
+%\end{center}
+%To je posebna lastnost končnih avtomat ustvarjenih s to konstrukcijo in ne velja za poljuben končni avtomat.
+
+Sledijo definicije in pravila za konstrucijo za vse operacije in elemente.
 
 \subsection{Prazen jezik}
 \begin{tcolorbox}[title={Definicija}]
@@ -526,9 +558,10 @@ Edina razlika je da zamenjamo vsak $(u, v)$, kjer $u \in \Language{s}$ in $v\in 
 
 Končni avtomat konkatenacije $\Automaton{r}$ dveh končnih avtomatov $\Automaton{s}$ in $\Automaton{t}$ sestavimo tako:
 \begin{enumerate}
-\item Povežemo končna stanja $\Automaton{s}$ s stanji, ki jih je mogoče direktno doseči iz začetnega stanja v $\Automaton{t}$ (vsakega z vsakim).
-\item Začetno stanje v končnem avtomatu $\Automaton{t}$ odstranimo.
-\item Končna stanja v $\Automaton{s}$ označimo kot ne-končna, razen če je končno začetno stanje $\Automaton{t}$.
+  \item Ustvarimo prehod $\delta(q, \Char{a}) = q'$ iz vsakega končnega stanja $q$ v $\Automaton{s}$ v vsako stanje $q'$, ki je direktno dosegljivo iz začetnega stanja v $\Automaton{t}$ (vsakega z vsakim). 
+    Ustvarjen prehod je označen z enakim simbolom $\Char{a}$, kot obstoječi prehod, ki vodi iz začetnega stanja v $q'$.
+  \item Začetno stanje $\Automaton{t}$ odstranimo.
+  \item Končna stanja $\Automaton{s}$ označimo kot ne-končna, razen če je končno začetno stanje $\Automaton{t}$.
 \end{enumerate}
 
 \begin{center}
@@ -887,7 +920,10 @@ Avtomat $\Automaton{\Rep{s}{0}}$ je enak, kot avtomat za prazen niz.
 
 Končni avtomat unije $\Automaton{r}$ dveh končnih avtomatov $\Automaton{s}$ in $\Automaton{t}$ sestavimo tako:
 \begin{enumerate}
-\item Ustvarimo novo začetno stanje in ga povežemo s stanji, ki jih je mogoče direktno doseči iz začetnega stanja pri $\Automaton{s}$ in $\Automaton{t}$.
+\item Ustvarimo novo začetno stanje $q$.
+
+\item Ustvarimo prehod $\delta(q, \Char{a}) = q'$ iz novega začetnega stanja $q$ v vsako stanje $q'$, ki je direktno dosegljivo iz začetnega stanja v $\Automaton{s}$ ali $\Automaton{t}$.
+    Ustvarjen prehod je označen z enakim simbolom $\Char{a}$, kot obstoječi prehod, ki vodi iz začetnega stanja v $q'$.
 \item Začetni stanji $\Automaton{s}$ in $\Automaton{t}$ odstranimo.
 \item Začetno stanje $\Automaton{r}$ je končno če je končno začetno stanje $\Automaton{s}$ ali $\Automaton{t}$.
 \end{enumerate}
@@ -933,6 +969,148 @@ Končni avtomat unije $\Automaton{r}$ dveh končnih avtomatov $\Automaton{s}$ in
     \end{pgfonlayer}
   \end{tikzpicture}
 \end{center}
+
+\Ex
+\begin{align*}
+  \N{s} &= \Char{a} \\
+  \N{t} &= \Char{b} \\
+  \N{r} &= \Char{a} \Union \Char{b}
+\end{align*}
+
+\begin{align*}
+  \Language{\N{s}} &= \{\Str{a}\} \\
+  \Language{\N{t}} &= \{\Str{b}\} \\
+  \Language{\N{r}} &= \{\Str{a}, \Str{b}\} \\
+\end{align*}
+
+\begin{center}
+  \begin{tikzpicture}
+    \tikzset{
+      node distance=1cm,
+      every state/.append style={minimum size=0.5cm},
+      initial text=$ $
+    }
+
+    \node[state, initial, label=above left:$\Automaton{\N{s}}$] (x0) {};
+    \node[state, accepting, right=of x0] (x1) {};
+
+    \draw (x0) edge[->] node[auto]{$\Char{a}$} (x1);
+
+    \node[state, initial, label=above left:$\Automaton{\N{t}}$, below=of x0] (y0) {};
+    \node[state, accepting, right=of y0] (y1) {};
+
+    \draw (y0) edge[->] node[auto]{$\Char{b}$} (y1);
+
+    \node[state, initial, below=of y0] (q0) {};
+    \path (q0) pic {cross=0.30cm};
+    \node[state, accepting, right=of q0] (q1) {};
+
+    \draw (q0) edge[->] node[auto]{$\Char{a}$} (q1);
+
+    \node[state, initial, below=1.5cm of q0] (p0) {};
+    \path (p0) pic {cross=0.30cm};
+    \node[state, accepting, right=of p0] (p1) {};
+
+    \draw (p0) edge[->] node[auto]{$\Char{b}$} (p1);
+
+    \node[state, initial] at ($(q0)!0.5!(p0) - (1.5, 0)$) (n) {};
+
+    \draw (n) edge[->, out=10+0, in=-150+0] node[auto] {$\Char{a}$} (q1);
+    \draw (n) edge[->, out=-10+0, in=150+0] node[auto] {$\Char{b}$} (p1);
+
+    \node[state, initial, below=2.5cm of p0, label=above left:$\Automaton{\N{r}}$] (u0) {};
+    \node[state, accepting, above right=of u0] (u1) {};
+
+    \draw (u0) edge[->] node[auto]{$\Char{a}$} (u1);
+
+    \node[state, accepting, below right=of u0] (u4) {};
+
+    \draw (u0) edge[->] node[auto]{$\Char{b}$} (u4);
+
+  \end{tikzpicture}
+\end{center}
+\Next
+
+\Ex
+\begin{align*}
+  \N{s} &= \Char{a} \Union \Char{b} \\
+  \N{t} &= \Char{c} \Union \Char{d} \\
+  \N{r} &= (\Char{a} \Union \Char{b}) \Seq (\Char{c} \Union \Char{d})
+\end{align*}
+
+\begin{align*}
+  \Language{\N{s}} &= \{\Str{a}, \Str{b}\} \\
+  \Language{\N{t}} &= \{\Str{c}, \Str{d}\} \\
+  \Language{\N{r}} &= \{\Str{ac}, \Str{ad}, \Str{bc}, \Str{bd}\} \\
+\end{align*}
+
+\begin{center}
+  \begin{tikzpicture}
+    \tikzset{
+      node distance=1cm,
+      every state/.append style={minimum size=0.5cm},
+      initial text=$ $
+    }
+
+    \node[state, initial, label=above left:$\Automaton{\N{s}}$] (x0) {};
+    \node[state, accepting, above right=of x0] (x1) {};
+    \node[state, accepting, below right=of x0] (x2) {};
+
+    \draw (x0) edge[->] node[auto]{$\Char{a}$} (x1);
+    \draw (x0) edge[->] node[auto]{$\Char{b}$} (x2);
+
+    \node[state, initial, label=above left:$\Automaton{\N{t}}$, below=3 of x0] (y0) {};
+    \node[state, accepting, above right=of y0] (y1) {};
+    \node[state, accepting, below right=of y0] (y2) {};
+
+    \draw (y0) edge[->] node[auto]{$\Char{c}$} (y1);
+    \draw (y0) edge[->] node[auto]{$\Char{d}$} (y2);
+
+    \node[state, accepting, below=1.8 of y0] (q0) {};
+    \node[state, accepting, right=of q0] (q1) {};
+
+    \draw (q0) edge[->] node[auto]{$\Char{c}$} (q1);
+
+    \node[state, accepting, below=1.5cm of q0] (p0) {};
+    \node[state, accepting, right=of p0] (p1) {};
+
+    \draw (p0) edge[->] node[auto]{$\Char{d}$} (p1);
+
+    \node[state, initial] at ($(q0)!0.5!(p0) - (1.5, 0)$) (n) {};
+
+    \node[state, initial] at ($(q0)!0.5!(p0)$) (n1) {};
+    \path (n1) pic {cross=0.30cm};
+
+    \draw (n) edge[->] node[auto] {$\Char{a}$} (q0);
+    \draw (n) edge[->] node[auto] {$\Char{b}$} (p0);
+
+    \draw (n1) edge[->] node[below] {$\Char{c}$} (q1);
+    \draw (n1) edge[->] node[above] {$\Char{d}$} (p1);
+
+    \draw (p0) edge[->] node[right] {$\Char{c}$} (q1);
+    \draw (q0) edge[->] node[left] {$\Char{d}$} (p1);
+
+    \node[state, below=3.0 of q0] (e0) {};
+    \node[state, accepting, right=of e0] (e1) {};
+
+    \draw (e0) edge[->] node[auto]{$\Char{c}$} (e1);
+
+    \node[state, below=1.5cm of e0] (f0) {};
+    \node[state, accepting, right=of f0] (f1) {};
+
+    \draw (f0) edge[->] node[auto]{$\Char{d}$} (f1);
+
+    \node[state, initial, label=above left:$\Automaton{\N{r}}$] at ($(e0)!0.5!(f0) - (1.5, 0)$) (m) {};
+
+    \draw (m) edge[->] node[auto] {$\Char{a}$} (e0);
+    \draw (m) edge[->] node[auto] {$\Char{b}$} (f0);
+
+    \draw (f0) edge[->] node[above] {$\Char{c}$} (e1);
+    \draw (e0) edge[->] node[left] {$\Char{d}$} (f1);
+
+  \end{tikzpicture}
+\end{center}
+\Next
 
 \Ex
 \begin{align*}
@@ -1059,8 +1237,8 @@ Skupno predpono izpostavimo.
 \Ex
 \begin{align*}
   \N{r} &= \Char{a} \Spc \Char{b} \Union \Char{a} \Spc \Char{b} \Spc \Char{c} \Union \Char{a} \Spc \Char{c} \Spc \Char{d}\\
-        &= \Char{a} \Seq (\Char{b} \Union \Char{b} \Spc \Char{c} \Union \Char{c})\\
-        &= \Char{a} \Seq (\Char{b} \Seq (\Null \Union \Char{c}) \Union \Char{c})
+        &= \Char{a} \Seq (\Char{b} \Union \Char{b} \Spc \Char{c} \Union \Char{c} \Spc \Char{d})\\
+        &= \Char{a} \Seq (\Char{b} \Seq (\Null \Union \Char{c}) \Union \Char{c} \Spc \Char{d})
 \end{align*}
 
 \begin{center}
@@ -1092,7 +1270,6 @@ Skupno predpono izpostavimo.
 
 \Special{Poseben primer:} Če sta $s$ in $t$ sestavljena samo z uporabo unije in konkatenacije potem je nastali avtomat unije $\Automaton{r}$ drevo predpon.
 
-
 \subsection*{Konstrukcija kartezičnega produkta}
 Vhod sta $\Automaton{s} = (Q_1, \Alphabet, \delta_1, q_{0,1}, F_1)$ in $\Automaton{t} =(Q_2, \Alphabet, \delta_2, q_{0,2}, F_2)$.
 
@@ -1118,7 +1295,8 @@ Konstrukcija ustvari avtomat, ki se obnaša enako, kot če bi oba vhodna avtomat
     \tikzset{
       node distance=1cm,
       every state/.append style={minimum size=0.5cm},
-      initial text=$ $
+      initial text=$ $,
+      large/.style={minimum size=1.5cm},
     }
 
     \node[state, initial, label=above left:$\Automaton{s}$] (x0) {1};
@@ -1146,17 +1324,17 @@ Konstrukcija ustvari avtomat, ki se obnaša enako, kot če bi oba vhodna avtomat
     \draw (z1) edge[->] node[auto]{$\Char{c}$} (z2);
     \draw (z2) edge[->] node[auto]{$\Char{d}$} (z3);
 
-    \node[state, initial, below=2cm of z0, label=above left:$\Automaton{r}$] (u0) {$(1,1,1)$};
-    \node[state, right=of u0] (u1) {$(2, 2, 2)$};
-    \node[state, accepting, right=of u1] (u2) {$(3,3,\Err)$};
+    \node[state, large, initial, below=2cm of z0, label=above left:$\Automaton{r}$] (u0) {$(1,1,1)$};
+    \node[state, large, right=of u0] (u1) {$(2, 2, 2)$};
+    \node[state, large, accepting, right=of u1] (u2) {$(3,3,\Err)$};
     \draw (u0) edge[->] node[auto]{$\Char{a}$} (u1);
     \draw (u1) edge[->] node[auto]{$\Char{b}$} (u2);
 
-    \node[state, accepting, above right=of u2] (u3) {$(\Err, 4, \Err)$};
+    \node[state, large, accepting, above right=of u2] (u3) {$(\Err, 4, \Err)$};
     \draw (u2) edge[->] node[auto]{$\Char{c}$} (u3);
 
-    \node[state, below right=of u1] (u4) {$(\Err,\Err,3)$};
-    \node[state, accepting, right=of u4] (u5) {$(\Err,\Err,4)$};
+    \node[state, large, below right=of u1] (u4) {$(\Err,\Err,3)$};
+    \node[state, large, accepting, right=of u4] (u5) {$(\Err,\Err,4)$};
 
     \draw (u1) edge[->] node[auto]{$\Char{c}$} (u4);
     \draw (u4) edge[->] node[auto]{$\Char{d}$} (u5);
@@ -1274,6 +1452,8 @@ Z drugimi besedami, $s$ je lahko ponovljen $0, 1, 2, \dots, \infty$ krat.
     \begin{aligned}
       \Kleene{\Empty} &= \Null\\
       \Kleene{\Null} &= \Null\\
+      \Null \Seq \Kleene{s} &= \Kleene{s}\\
+      \Kleene{s} \Seq \Null &= \Kleene{s}\\
       \Kleene{(\Kleene{s})} &= \Kleene{s}\\
       \Kleene{(s \Union t)} &= \Kleene{(\Kleene{s} \Seq t)} \Seq \Kleene{s}\\
       \Kleene{(s \Seq t)} &= \Null \Union s \Seq \Kleene{(t \Seq s)} \Seq t\\
@@ -1284,8 +1464,9 @@ Z drugimi besedami, $s$ je lahko ponovljen $0, 1, 2, \dots, \infty$ krat.
 
 Končni avtomat za Kleeno-ovo zaprtje $\Automaton{\Kleene{s}}$ sestavimo tako:
 \begin{enumerate}
-  \item Končna stanja $\Automaton{s}$ povežemo s stanji, ki jih je mogoče direktno doseči iz začetnega stanja istega avtomata (vsakega z vsakim).
-  \item Začetno stanje $\Automaton{\Kleene{s}}$ označimo kot končno.
+  \item Ustvarimo prehod $\delta(q, \Char{a}) = q'$ iz vsakega končnega stanja $q$ v $\Automaton{s}$ v vsako stanje $q'$, ki je direktno dosegljivo iz začetnega stanja istega avtomata.
+    Ustvarjen prehod je označen z enakim simbolom $\Char{a}$, kot obstoječi prehod, ki vodi iz začetnega stanja v $q'$.
+  \item Začetno stanje označimo kot končno.
 \end{enumerate}
 
 \begin{center}
@@ -1368,14 +1549,14 @@ Končni avtomat za Kleeno-ovo zaprtje $\Automaton{\Kleene{s}}$ sestavimo tako:
       initial text=$ $
     }
 
-    \node[state, initial, label=above left:$\Automaton{s_2}$] (q0) {};
+    \node[state, initial, label=above left:$\Automaton{\N{s}}$] (q0) {};
     \node[state, right=of q0] (q1) {};
     \node[state, accepting, right=of q1] (q2) {};
 
     \draw (q0) edge node[auto]{$\Char{a}$} (q1);
     \draw (q1) edge node[auto]{$\Char{b}$} (q2);
 
-    \node[state, accepting, label=above left:$\Automaton{r_2}$, initial, below=1.5cm of q0] (p0) {};
+    \node[state, accepting, label=above left:$\Automaton{\N{r}}$, initial, below=1.5cm of q0] (p0) {};
     \node[state, right=of p0] (p1) {};
     \node[state, accepting, right=of p1] (p2) {};
 
@@ -1385,6 +1566,146 @@ Končni avtomat za Kleeno-ovo zaprtje $\Automaton{\Kleene{s}}$ sestavimo tako:
   \end{tikzpicture}
 \end{center}
 \Next
+
+\Ex
+
+\begin{align*}
+  \N{s} &= \Char{c}\\
+  \N{t} &= \Kleene{(\Char{a} \Spc \Char{b})}\\
+  \N{r} &= \Char{c} \Seq \Kleene{(\Char{a} \Spc \Char{b})}
+\end{align*}
+
+\begin{align*}
+  \Language{\N{s}} &= \{\Str{c}\} \\
+  \Language{\N{t}} &= \{\Str{}, \Str{ab}, \Str{abab}, \Str{ababab}, \dots\}\\
+  \Language{\N{r}} &= \{\Str{c}, \Str{cab}, \Str{cabab}, \Str{cababab}, \dots\}
+\end{align*}
+
+\begin{center}
+  \begin{tikzpicture}
+    \tikzset{
+      node distance=1cm,
+      every state/.append style={minimum size=0.5cm},
+      initial text=$ $
+    }
+
+    \node[state, initial, label=above left:$\Automaton{\N{s}}$] (x0) {};
+    \node[state, accepting, right=of x0] (x1) {};
+
+    \draw (x0) edge[->] node[auto]{$\Char{c}$} (x1);
+
+    \node[state, initial, accepting, label=above left:$\Automaton{\N{t}}$, below=of x0] (y0) {};
+    \node[state, right=of y0] (y1) {};
+    \node[state, accepting, right=of y1] (y2) {};
+
+    \draw (y0) edge[->] node[auto]{$\Char{a}$} (y1);
+    \draw (y1) edge[->] node[auto]{$\Char{b}$} (y2);
+    \draw (y2) edge[bend right=70, ->] node[above]{$\Char{a}$} (y1);
+
+    \node[state, initial, below=of y0] (q0) {};
+    \node[state, accepting, right=of q0] (q1) {};
+
+    \draw (q0) edge[->] node[auto]{$\Char{c}$} (q1);
+
+    \node[state, initial, accepting, right=of q1] (p0) {};
+    \path (p0) pic {cross=0.30cm};
+    \node[state, right=of p0] (p1) {};
+    \node[state, accepting, right=of p1] (p2) {};
+
+    \draw (p0) edge[->] node[auto]{$\Char{a}$} (p1);
+    \draw (p1) edge[->] node[auto]{$\Char{b}$} (p2);
+
+    \draw (q1) edge[->, bend right=60] node[auto]{$\Char{a}$} (p1);
+    \draw (p2) edge[bend right=70, ->] node[above]{$\Char{a}$} (p1);
+
+    \node[state, initial, label=above left:$\Automaton{\N{r}}$, below=1.5cm of q0] (s0) {};
+    \node[state, accepting, right=of s0] (s1) {};
+    \node[state, right=of s1] (s3) {};
+    \node[state, accepting, right=of s3] (s4) {};
+
+    \draw (s0) edge[->] node[auto]{$\Char{c}$} (s1);
+    \draw (s1) edge[->] node[auto]{$\Char{a}$} (s3);
+    \draw (s3) edge[->] node[auto]{$\Char{b}$} (s4);
+    \draw (s4) edge[bend right=70, ->] node[above]{$\Char{a}$} (s3);
+  \end{tikzpicture}
+\end{center}
+\Next
+
+\Ex
+\begin{align*}
+  \N{s} &= \Char{a} \Union \Char{b}\\
+  \N{r} &= \Kleene{(\Char{a} \Union \Char{b})}
+\end{align*}
+
+\begin{align*}
+  \Language{\N{s}} &= \{\Str{a}, \Str{b}\} \\
+  \Language{\N{r}} &= \{\Null, \Str{a}, \Str{b}, \Str{aa}, \Str{ab}, \Str{ba}, \Str{bb}, \dots\}\\
+\end{align*}
+
+\begin{center}
+  \begin{tikzpicture}
+    \tikzset{
+      ->,
+      node distance=1cm,
+      every state/.append style={minimum size=0.5cm},
+      initial text=$ $
+    }
+
+    \node[state, initial, label=above left:$\Automaton{\N{s}}$] (q0) {};
+    \node[state, accepting, above right=of q0] (q1) {};
+    \node[state, accepting, below right=of q0] (q2) {};
+
+    \draw (q0) edge node[auto]{$\Char{a}$} (q1);
+    \draw (q0) edge node[auto]{$\Char{b}$} (q2);
+
+    \node[state, accepting, label=above left:$\Automaton{\N{r}}$, initial, below=3.5cm of q0] (p0) {};
+    \node[state, accepting, above right=of p0] (p1) {};
+    \node[state, accepting, below right=of p0] (p2) {};
+
+    \draw (p0) edge node[auto]{$\Char{a}$} (p1);
+    \draw (p0) edge node[below]{$\Char{b}$} (p2);
+    \draw (p1) edge[bend right] node[auto]{$\Char{b}$} (p2);
+    \draw (p2) edge[bend right] node[auto]{$\Char{a}$} (p1);
+    \draw (p1) edge[loop] node[above]{$\Char{a}$} (p1);
+    \draw (p2) edge[in=-50,out=-130, loop] node[below]{$\Char{b}$} (p2);
+  \end{tikzpicture}
+\end{center}
+\Next
+
+\Ex
+\begin{equation*}
+\begin{aligned}
+  \N{r} &= \Char{a} \Spc \Char{b} \Union \Kleene{\Char{a}}\\
+  &= \Char{a} \Spc \Char{b} \Union \Null \Union \Char{a} \Union \Char{a} \Spc \Char{a} \Union \Char{a} \Spc \Char{a} \Spc \Char{a} \Union \dots\\
+  &=  \Null \Union \Char{a} \Spc \Char{b} \Union \Char{a} \Union \Char{a} \Spc \Char{a} \Union \Char{a} \Spc \Char{a} \Spc \Char{a} \Union \dots\\
+  &= \Char{a} \Seq (\Char{b} \Union \Null \Union \Char{a} \Union \Char{a} \Spc \Char{a} \Union \dots)\\
+  &= \Null \Union \Char{a} \Seq (\Char{b} \Union \Kleene{\Char{a}})\\
+  &= \Opt{(\Char{a} \Seq (\Char{b} \Union \Kleene{\Char{a}}))}\\
+\end{aligned}
+\end{equation*}
+
+\begin{center}
+  \begin{tikzpicture}
+    \tikzset{
+      ->,
+      node distance=1cm,
+      every state/.append style={minimum size=0.5cm},
+      initial text=$ $
+    }
+
+    \node[state, initial, accepting, label=above left:$\Automaton{\N{r}}$] (i) {};
+
+    \node[state, accepting, right=of i] (q0) {};
+    \node[state, accepting, above right=of q0] (q1) {};
+    \node[state, accepting, below right=of q0] (q2) {};
+
+    \draw (i) edge node[auto]{$\Char{a}$} (q0);
+    \draw (q0) edge node[auto]{$\Char{a}$} (q1);
+    \draw (q0) edge node[auto]{$\Char{b}$} (q2);
+    \draw (q1) edge[loop] node[above]{$\Char{a}$} (q2);
+  \end{tikzpicture}
+\end{center}
+
 
 \subsection{Pozitivno zaprtje}
 \Reset
@@ -1405,7 +1726,7 @@ Končni avtomat za Kleeno-ovo zaprtje $\Automaton{\Kleene{s}}$ sestavimo tako:
 Ujemanje $s$ 1 ali več krat.
 Z drugimi besedami, $s$ je lahko ponovljen $1, 2, \dots, \infty$ krat.
 
-Avtomat pozitivnega zaprtja sestavimo enako, kot za Kleene-ovo zaprtje, z razliko, da pustimo začetno stanje brez sprememb.
+Končen avtomat pozitivnega zaprtja sestavimo enako, kot za Kleene-ovo zaprtje, z razliko, da pustimo začetno stanje brez sprememb.
 \begin{center}
   \begin{tikzpicture}
     \tikzset{
@@ -1576,6 +1897,25 @@ Avtomat pozitivnega zaprtja sestavimo enako, kot za Kleene-ovo zaprtje, z razlik
   \N{r} &= \N{i} \Union \N{k}
 \end{align*}
 
+\begin{equation*}
+  A = \{\Char{a}, \dots, \Char{z}\}
+\end{equation*}
+
+Gre tudi z izpostavljanjem, vendar je nastali regularni izraz precej kompleksen.
+\begin{equation*}
+\begin{aligned}
+  \N{r} &= \Char{a} \Spc \Char{b} \Union \Char{a} \Spc \Char{b} \Spc \Char{c} \Union \Char{a} \Spc \Char{c} \Spc \Char{d} \Union \KleenePlus{A}\\
+  &= \underline{\Char{a}} \Seq (\Char{b} \Union \Char{b} \Spc \Char{c} \Union \Char{c} \Spc \Char{d} \Union \Kleene{A}) \Union (A - \{\Char{a}\}) \Seq \Kleene{A}\\ 
+  &= \Char{a} \Seq (\Null \Union \underline{\Char{b}} \Seq (\not\Null \Union \Char{c} \Union \Kleene{A}) \Union \underline{\Char{c}} \Seq (\Char{d} \Union \Kleene{A}) \Union (A - \{\Char{b}, \Char{c}\}) \Seq \Kleene{A}) \Union (A - \{\Char{a}\}) \Seq \Kleene{A} \\
+  &= \Char{a} \Seq (\Null \Union \Char{b} \Seq (\Char{c} \Union \Kleene{A}) \Union \Char{c} \Seq (\Char{d} \Union \Kleene{A}) \Union (A - \{\Char{b}, \Char{c}\}) \Seq \Kleene{A}) \Union (A - \{\Char{a}\}) \Seq \Kleene{A}\\
+  &= \Char{a} \Seq (\Null \Union \Char{b} \Seq (\Null \Union \underline{\Char{c}} \Seq (\not\Null \Union \Kleene{A}) \Union (A - \{\Char{c}\}) \Seq \Kleene{A}) \Union \Char{c} \Seq (\Char{d} \Union \Kleene{A}) \Union (A - \{\Char{b}, \Char{c}\}) \Seq \Kleene{A}) \Union (A - \{\Char{a}\}) \Seq \Kleene{A}\\
+  &= \Char{a} \Seq (\Null \Union \Char{b} \Seq (\Null \Union \Char{c} \Seq \Kleene{A} \Union (A - \{\Char{c}\}) \Seq \Kleene{A}) \Union \Char{c} \Seq (\Char{d} \Union \Kleene{A}) \Union (A - \{\Char{b}, \Char{c}\}) \Seq \Kleene{A}) \Union (A - \{\Char{a}\}) \Seq \Kleene{A}\\
+  &= \Char{a} \Seq (\Null \Union \Char{b} \Seq (\Null \Union \Char{c} \Seq \Kleene{A} \Union (A - \{\Char{c}\}) \Seq \Kleene{A}) \Union \Char{c} \Seq (\Null \Union \underline{\Char{d}} \Seq (\not\Null \Union \Kleene{A}) \Union (A - \{\Char{d}\}) \Seq \Kleene{A}) \Union (A - \{\Char{b}, \Char{c}\}) \Seq \Kleene{A}) \Union (A - \{\Char{a}\}) \Seq \Kleene{A}\\
+  &= \Char{a} \Seq (\Null \Union \Char{b} \Seq (\Null \Union \Char{c} \Seq \Kleene{A} \Union (A - \{\Char{c}\}) \Seq \Kleene{A}) \Union \Char{c} \Seq (\Null \Union \Char{d} \Seq \Kleene{A} \Union (A - \{\Char{d}\}) \Seq \Kleene{A}) \Union (A - \{\Char{b}, \Char{c}\}) \Seq \Kleene{A}) \Union (A - \{\Char{a}\}) \Seq \Kleene{A}\\
+\end{aligned}
+\end{equation*}
+
+Zato raje uporabimo konstrukcijo kartezičnega produkta.
 \begin{align*}
   \acc_{\N{i}}(2) &= 1 \\[1em]
   \acc_{\N{k}}(3) &= 2 \\
@@ -1621,25 +1961,26 @@ Avtomat pozitivnega zaprtja sestavimo enako, kot za Kleene-ovo zaprtje, z razlik
       ->,
       node distance=1cm,
       every state/.append style={minimum size=0.5cm},
+      large/.style={minimum size=1.2cm},
       initial text=$ $
     }
 
-    \node[state, initial, label=above left:$\Automaton{\N{r}}$] (v0) {$(1,1)$};
-    \node[state, accepting, right=of v0] (v1) {(2,2)};
-    \node[state, accepting, right=of v1] (v2) {$(2, 3)$};
+    \node[state, large, initial, label=above left:$\Automaton{\N{r}}$] (v0) {$(1,1)$};
+    \node[state, large, accepting, right=of v0] (v1) {(2,2)};
+    \node[state, large, accepting, right=of v1] (v2) {$(2, 3)$};
     \draw (v0) edge[->] node[auto]{$\Char{a}$} (v1);
     \draw (v1) edge[->] node[auto]{$\Char{b}$} (v2);
 
-    \node[state, accepting, right=of v2] (v3) {$(2, 4)$};
+    \node[state, large, accepting, right=of v2] (v3) {$(2, 4)$};
     \draw (v2) edge[->] node[auto]{$\Char{c}$} (v3);
 
-    \node[state, accepting, below right=of v1] (v4) {$(2, 5)$};
-    \node[state, accepting, right=of v4] (v5) {$(2, 6)$};
+    \node[state, large, accepting, below right=of v1] (v4) {$(2, 5)$};
+    \node[state, large, accepting, right=of v4] (v5) {$(2, 6)$};
 
     \draw (v1) edge[->] node[auto]{$\Char{c}$} (v4);
     \draw (v4) edge[->] node[auto]{$\Char{d}$} (v5);
 
-    \node[state, accepting, above=2cm of v1] (s) {$(2, \Err)$};
+    \node[state, large, accepting, above=2cm of v1] (s) {$(2, \Err)$};
     \draw (v0) edge[->, bend left] node[auto]{$A - \{\Char{a}\}$} (s);
     \draw (v1) edge[->, bend right] node[auto]{$A - \{\Char{b}, \Char{c}\}$} (s);
     \draw (v2) edge[->, bend right] node[right]{$A - \{\Char{c}\}$} (s);
@@ -1649,9 +1990,6 @@ Avtomat pozitivnega zaprtja sestavimo enako, kot za Kleene-ovo zaprtje, z razlik
     \draw (s) edge[->, loop] node[above]{$A$} (s);
   \end{tikzpicture}
 \end{center}
-\begin{equation*}
-  A = \{\Char{a}, \dots, \Char{z}\}
-\end{equation*}
 \begin{align*}
   \acc_{\N{r}}((2, \Err)) &= 1 \\
   \acc_{\N{r}}((2, 2)) &= 1 \\
@@ -1663,7 +2001,7 @@ Avtomat pozitivnega zaprtja sestavimo enako, kot za Kleene-ovo zaprtje, z razlik
 
 \Special{Poseben primer:} Potrebno je samo eno dodatno stanje $(2, \Err)$, v primerjavi z avtomatom za ključne besede.
 Stanje $(2, \Err)$ deluje kot ponor.
-Množice znakov $A - D$ lahko implementiramo tako, da najprej naredimo vse povezave za A in jih potem "povozimo" s povezavami za D.
+Množice znakov $A - D$ lahko implementiramo tako, da najprej naredimo vse prehode za A in jih potem "povozimo" s prehodi za D.
 \Next
 
 %\section{Dodatno: Konstrukcija podmnožic}

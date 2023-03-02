@@ -1,5 +1,5 @@
 let
-  pkgs = import <nixpkgs> {};
+  pkgs = import <nixos> {};
   cache = pkgs.makeFontsCache {
     fontDirectories = pkgs.texlive.stix2-otf.pkgs;
   };
@@ -37,7 +37,7 @@ stdenv.mkDerivation {
   buildInputs = [
     fontconfig
     (texlive.combine {
-      inherit (texlive) scheme-small luatex biblatex latexmk stix2-otf biber unicode-math lualatex-math tcolorbox environ;
+      inherit (texlive) scheme-small luatex biblatex latexmk stix2-otf biber unicode-math lualatex-math tcolorbox environ mathdots;
     })
   ];
 }
