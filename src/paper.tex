@@ -909,6 +909,7 @@ Avtomat $\Automaton{\Rep{s}{0}}$ je enak, kot avtomat za prazen niz.
   \begin{equation*}
     \begin{aligned}
       s \Union t &= t \Union s \\
+      s \Union s &= s \\
       \Empty \Union s &= s \\
       s \Union \Empty &= s \\
       (s \Union p) \Union q &= s \Union (p \Union q) = s \Union p \Union q \\
@@ -1452,8 +1453,8 @@ Z drugimi besedami, $s$ je lahko ponovljen $0, 1, 2, \dots, \infty$ krat.
     \begin{aligned}
       \Kleene{\Empty} &= \Null\\
       \Kleene{\Null} &= \Null\\
-      \Null \Seq \Kleene{s} &= \Kleene{s}\\
-      \Kleene{s} \Seq \Null &= \Kleene{s}\\
+      \Null \Union \Kleene{s} &= \Kleene{s}\\
+      \Kleene{s} \Union \Null &= \Kleene{s}\\
       \Kleene{(\Kleene{s})} &= \Kleene{s}\\
       \Kleene{(s \Union t)} &= \Kleene{(\Kleene{s} \Seq t)} \Seq \Kleene{s}\\
       \Kleene{(s \Seq t)} &= \Null \Union s \Seq \Kleene{(t \Seq s)} \Seq t\\
@@ -1678,7 +1679,7 @@ Končni avtomat za Kleeno-ovo zaprtje $\Automaton{\Kleene{s}}$ sestavimo tako:
   \N{r} &= \Char{a} \Spc \Char{b} \Union \Kleene{\Char{a}}\\
   &= \Char{a} \Spc \Char{b} \Union \Null \Union \Char{a} \Union \Char{a} \Spc \Char{a} \Union \Char{a} \Spc \Char{a} \Spc \Char{a} \Union \dots\\
   &=  \Null \Union \Char{a} \Spc \Char{b} \Union \Char{a} \Union \Char{a} \Spc \Char{a} \Union \Char{a} \Spc \Char{a} \Spc \Char{a} \Union \dots\\
-  &= \Char{a} \Seq (\Char{b} \Union \Null \Union \Char{a} \Union \Char{a} \Spc \Char{a} \Union \dots)\\
+  &= \Null \Union \Char{a} \Seq (\Char{b} \Union \Null \Union \Char{a} \Union \Char{a} \Spc \Char{a} \Union \dots)\\
   &= \Null \Union \Char{a} \Seq (\Char{b} \Union \Kleene{\Char{a}})\\
   &= \Opt{(\Char{a} \Seq (\Char{b} \Union \Kleene{\Char{a}}))}\\
 \end{aligned}
