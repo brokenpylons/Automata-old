@@ -2037,6 +2037,36 @@ Množice znakov $A - D$ lahko implementiramo tako, da najprej naredimo vse preho
   \end{equation*}
 \end{tcolorbox}
 
+\begin{align*}
+  \NT{Start} &\Arrow \NT{Bitwise}\\
+  \NT{Bitwise} &\Arrow \NT{Additive} \Spc \NT{Bitwise'}\\
+  \NT{Bitwise'} &\Arrow \T{bwand} \Spc \NT{Additive} \Spc \NT{Bitwise'} \Union \T{bwor} \Spc \NT{Additive} \Spc \NT{Bitwise'} \Union \Null\\[1em]
+  \NT{Additive} &\Arrow \NT{Multiplicative} \Spc \NT{Additive'}\\
+  \NT{Additive'} &\Arrow \T{plus} \Spc \NT{Multiplicative} \Spc \NT{Additive'} \Union \T{minus} \Spc \NT{Multiplicative} \Spc \NT{Additive'} \Union \Null\\[1em]
+  \NT{Multiplicative} &\Arrow \NT{Unary} \Spc \NT{Multiplicative'}\\
+  \NT{Multiplicative'} &\Arrow \T{times} \Spc \NT{Unary} \Spc \NT{Multiplicative'} \Union \T{divide} \Spc \NT{Unary} \Spc \NT{Multiplicative'} \Union \Null\\[1em]
+  \NT{Unary} &\Arrow \T{plus} \Spc \NT{Primary} \Union \T{minus} \Spc \NT{Primary} \Union \NT{Primary}\\[1em]
+  \NT{Primary} &\Arrow \T{int} \Union \T{hex} \Union \T{variable} \Union \T{lparen} \Spc \NT{Bitwise} \Spc \T{rparen}
+\end{align*}
+
+\begin{align*}
+  \NT{Start} &\Arrow \NT{Bitwise}\\
+  \NT{Bitwise} &\Arrow \NT{Additive} \Spc \Kleene{(\T{bwand} \Spc \NT{Additive} \Union \T{bwor} \Spc \NT{Additive})}\\
+  \NT{Additive} &\Arrow \NT{Multiplicative} \Spc \Kleene{(\T{plus} \Spc \NT{Multiplicative} \Union \T{minus} \Spc \NT{Multiplicative})}\\
+  \NT{Multiplicative} &\Arrow \NT{Unary} \Spc \Kleene{(\T{times} \Spc \NT{Unary} \Spc \Union \T{divide} \Spc \NT{Unary})}\\
+  \NT{Unary} &\Arrow \T{plus} \Spc \NT{Primary} \Union \T{minus} \Spc \NT{Primary} \Union \NT{Primary}\\
+  \NT{Primary} &\Arrow \T{int} \Union \T{hex} \Union \T{variable} \Union \T{lparen} \Spc \NT{Bitwise} \Spc \T{rparen}
+\end{align*}
+
+\begin{align*}
+  \NT{Start} &\Arrow \NT{Bitwise}\\
+  \NT{Bitwise} &\Arrow \NT{Additive} \Spc \Kleene{((\T{bwand} \Union \T{bwor}) \Spc \NT{Additive})}\\
+  \NT{Additive} &\Arrow \NT{Multiplicative} \Spc \Kleene{((\T{plus} \Union \T{minus}) \Spc \NT{Multiplicative})}\\
+  \NT{Multiplicative} &\Arrow \NT{Unary} \Spc \Kleene{((\T{times} \Union \T{divide}) \Spc \NT{Unary})}\\
+  \NT{Unary} &\Arrow \Opt{(\T{plus} \Union \T{minus})} \Spc \NT{Primary}\\
+  \NT{Primary} &\Arrow \T{int} \Union \T{hex} \Union \T{variable} \Union \T{lparen} \Spc \NT{Bitwise} \Spc \T{rparen}
+\end{align*}
+
 \section{FIRST}
 \begin{tcolorbox}[title={Definicija}]
   \begin{equation*}
