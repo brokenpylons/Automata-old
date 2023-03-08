@@ -1,4 +1,4 @@
-\documentclass{article}
+\documentclass{report}
 \usepackage{mathtools}
 \usepackage{unicode-math}
 \usepackage{lualatex-math}
@@ -21,6 +21,7 @@
 %\usepackage{amssymb}
 \usepackage{listings}
 
+\renewcommand{\chaptername}{Poglavje}
 
 \DeclareMathOperator{\acc}{symbol}
 
@@ -53,6 +54,25 @@
 \newcommand{\Opt}[1]{#1?}
 \newcommand{\KleenePlus}[1]{#1^+}
 \newcommand{\Err}{\rdiagovfdiag}
+
+\newcommand{\Set}[1]{\mathbf{#1}}
+
+\newcommand{\FIRST}{\textsc{first}}
+\newcommand{\FOLLOW}{\textsc{follow}}
+\newcommand{\NEXT}{\textsc{next}}
+\newcommand{\EOF}{\textsc{eof}}
+\newcommand{\Terminals}{\Set{T}}
+\newcommand{\Productions}{\Set{P}}
+\newcommand{\NonTerminals}{\Set{N}}
+
+\newcommand{\Arrow}{\Coloneq}
+\newcommand{\Derive}{\Rightarrow}
+\newcommand{\DeriveStar}{\Rightarrow^\ast}
+\newcommand{\DerivePlus}{\Rigtharrow^+}
+
+\newcommand{\NT}[1]{{#1}}
+\newcommand{\T}[1]{{#1}}
+\newcommand{\Sym}[1]{{#1}}
 
 \makeatletter
 \DeclareRobustCommand{\Dots}{%
@@ -94,6 +114,8 @@
 
 \Special{Meta:} Simboli so omejeni na (pod)poglavja.
 
+\chapter{Končni avtomati}
+
 \section{Jezik}
 Jezik je (ne nujno končna) množica nizov.
 
@@ -119,7 +141,7 @@ Implementiramo jo lahko, kot asociativni seznam, iskalno drevo ali tabelo.
 
 \Ex
 \begin{equation}
-  r_1 = \Kleene{(\Char{b} \Seq (\Char{a} \Seq \Char{b})?)} \Seq \Char{c} \\
+  r_1 = \Kleene{(\Char{b} \Seq (\Char{a} \Spc \Char{b})?)} \Seq \Char{c} \\
 \end{equation}
 \begin{align*}
   \Automaton{r_1} &= (Q_1, \Sigma, \delta_1, q_{0, 1}, F_1)\\[1em]
@@ -171,7 +193,7 @@ Implementiramo jo lahko, kot asociativni seznam, iskalno drevo ali tabelo.
 Vsak regularni izraz lahko ustreza večim različnim avtomatom.
 
 \begin{gather*}
-  r_2 = \Kleene{(\Char{b} \Seq (\Char{a} \Seq \Char{b})?)} \Seq \Char{c} \\
+  r_2 = \Kleene{(\Char{b} \Seq (\Char{a} \Spc \Char{b})?)} \Seq \Char{c} \\
   \Automaton{r_2} = (Q_2, \Sigma, \delta_2, q_{0, 2}, F_2)
 \end{gather*}
 
@@ -2004,6 +2026,67 @@ Zato raje uporabimo konstrukcijo kartezičnega produkta.
 Stanje $(2, \Err)$ deluje kot ponor.
 Množice znakov $A - D$ lahko implementiramo tako, da najprej naredimo vse prehode za A in jih potem "povozimo" s prehodi za D.
 \Next
+
+\chapter{Gramatike}
+
+\begin{tcolorbox}[title={Definicija}]
+  \begin{equation*}
+    \begin{aligned}
+      G = (\Terminals, \NonTerminals, \Productions, \NT{S})
+    \end{aligned}
+  \end{equation*}
+\end{tcolorbox}
+
+\section{FIRST}
+\begin{tcolorbox}[title={Definicija}]
+  \begin{equation*}
+    \begin{aligned}
+      \FIRST(L) &= \{ \T{a} \mid \T{a} \Spc \beta \in L \}\\[1em]
+      \FIRST(\alpha) &= \{\T{a} \mid \alpha \DeriveStar \T{a} \Spc \beta \land \T{a} \in \Terminals\}\\[1em]
+      \FIRST(r \Seq s) &= \FIRST(\FIRST(r) \Seq \FIRST(s))\\
+      \FIRST(r \Union s) &= \FIRST(r) \cup \FIRST(s)\\
+      \FIRST(\NT{A}) &= \FIRST(r)\text{, kjer } \T{A} \in \NonTerminals \land \NT{A} \Arrow r \in \Productions\\
+      \FIRST(\T{a}) &= \FIRST(\T{a})\text{, kjer } \T{a} \in \Terminals\\
+      \FIRST(\Null) &= \{\Null\}\\
+    \end{aligned}
+  \end{equation*}
+\end{tcolorbox}
+
+Po \cite{dragonbook} za izračun $\FIRST(\Sym{X})$ za vse simbole $\Sym{X}$ uporabimo naslednja pravila, dokler novih terminalov ali $\Null$ več ni mogoče dodati kateri koli $\FIRST$ množici.
+
+\begin{enumerate}
+  \item Če je $\Sym{X}$ terminal potem $\FIRST(\Sym{X}) = \{\Sym{X}\}$.
+  \item Če je $\Sym{X}$ neterminal in obstaja produkcija $\Sym{X} \Arrow \Sym{Y}_1 \Spc \Sym{Y}_2 \Spc \dots \Spc \Sym{Y}_k$ za nek $k \geq 1$, potem dodamo $\T{a}$ v $\FIRST(\Sym{X})$, če je za nek $i$, $\T{a}$ v $\FIRST(\Sym{Y}_i)$, in vsi $\FIRST(\Sym{Y}_1), \dots, \FIRST(\Sym{Y}_{i - 1})$ vsebujejo $\Null$; torej $\Sym{Y}_1 \dots \Sym{Y}_{i - 1} \DeriveStar \Null$.
+    Če je $\Null$ v vseh $\FIRST(\Sym{Y}_j)$ za vse $j = 1, 2, \dots, k$, potem dodamo $\Null$ v $\FIRST(\Sym{X})$.
+  \item Če obstaja produkcija $\Sym{X} \Arrow \Null$ potem dodamo $\Null$ v $\FIRST(\Sym{X})$.
+\end{enumerate}
+
+Za izračun $\FIRST$ niza $\Sym{X}_1 \Spc \Sym{X}_2 \Spc \dots \Spc \Sym{X}_n$ dodamo v $\FIRST(\Sym{X}_1 \Spc \Sym{X}_2 \Spc \dots \Spc \Sym{X}_n)$ vse simbole iz $\FIRST(\Sym{X}_1)$ razen $\Null$. Nato dodamo vse simbole iz $\FIRST(\Sym{X}_2)$, če je $\Null$ v $\FIRST(\Sym{X}_1)$; vse simbole iz $\FIRST(\Sym{X}_3)$, če je $\Null$ v $\FIRST(\Sym{X}_1)$ in $\FIRST(\Sym{X}_2)$; in tako dalje.
+Na koncu dodamo $\Null$ v $\FIRST(\Sym{X}_1 \Spc \Sym{X}_2 \Spc \dots \Spc \Sym{X}_n)$, če je, za vse $i$, $\Null$ v $\FIRST(\Sym{X}_i)$.
+
+\section{FOLLOW}
+\begin{tcolorbox}[title={Definicija}]
+  \begin{equation*}
+    \begin{aligned}
+      \FOLLOW(\NT{B}) &= \{ \FIRST(\eta \Seq \EOF) \mid \NT{S} \Seq \EOF \DeriveStar \gamma \Spc \NT{B} \Spc \eta \Seq \EOF \}\\[1em]
+      \FOLLOW(\NT{S}) &= \{\EOF\}\\
+      \FOLLOW(\NT{B}) &= \FIRST(\beta \Seq \FOLLOW(\NT{A}))\text{, kjer } \NT{A} \Arrow \alpha \Spc \NT{B} \Spc \beta \in \Productions\\[1em]
+      \FOLLOW(\NT{B}) &= \NEXT(\NT{B}, r, \FOLLOW(\NT{A}))\text{, kjer } \NT{A} \Arrow r \in \Productions\\
+      \NEXT(\NT{B}, r \Seq s, k) &= \NEXT(\NT{B}, r, s \Seq k) \cup \NEXT(\NT{B}, s, k)\\
+      \NEXT(\NT{B}, r \Union s, k) &= \NEXT(\NT{B}, r, k) \cup \NEXT(\NT{B}, s, k)\\
+      \NEXT(\NT{B}, \NT{A}, k) &= \FIRST(k) \text{, kjer } \NT{A} \in \NonTerminals \land \NT{A} = \NT{B} \\
+      \NEXT(\NT{B}, \T{a}, k) &= \Empty\text{, kjer } \T{a} \in \Terminals\\
+      \NEXT(\NT{B}, \Null, k) &= \Empty
+    \end{aligned}
+  \end{equation*}
+\end{tcolorbox}
+
+Po \cite{dragonbook} za izračun $\FOLLOW$ za vse neterminale $\NT{A}$ uporabimo naslednja pravila, dokler več v $\FOLLOW$ ni mogoče dodati nobenega simbola.
+\begin{enumerate}
+  \item Dodamo $\EOF$ v $\FOLLOW(\NT{S})$, kjer je $\NT{S}$ začetni simbol.
+  \item Če obstaja produkcija $\NT{A} \Arrow \alpha \Spc \NT{B} \Spc \beta$, potem je vse iz $\FIRST(\beta)$ razen $\Null$ v $\FOLLOW(\NT{B})$.
+  \item Če obstaja produkcija $\NT{A} \Arrow \alpha \Spc \NT{B}$ ali produkcija $\NT{A} \Arrow \alpha \Spc \NT{B} \Spc \beta$, kjer $\FIRST(\beta)$ vsebuje $\Null$, potem je vse iz $\FOLLOW(\NT{A})$ v $\FOLLOW(\NT{B})$.
+\end{enumerate}
 
 %\section{Dodatno: Konstrukcija podmnožic}
 %Pri vajah se bomo omejili na deterministične avtomate.

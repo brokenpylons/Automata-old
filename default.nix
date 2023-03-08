@@ -1,5 +1,5 @@
 let
-  pkgs = import <nixos> {};
+  pkgs = import <nixpkgs> {};
   cache = pkgs.makeFontsCache {
     fontDirectories = pkgs.texlive.stix2-otf.pkgs;
   };
