@@ -18,8 +18,11 @@
 \usepackage{biblatex}
 \addbibresource{references.bib}
 \usepackage{amsmath}
-%\usepackage{amssymb}
 \usepackage{listings}
+\lstset{
+  basicstyle=\ttfamily,
+  mathescape
+}
 
 \renewcommand{\chaptername}{Poglavje}
 
@@ -27,13 +30,14 @@
 
 \usepackage{mathtools}
 \usepackage{tikz}
-\usetikzlibrary{automata, positioning, arrows, fit, matrix, shapes.geometric, shapes.misc, calc}
+\usetikzlibrary{automata, arrows.meta, positioning, arrows, fit, matrix, shapes.geometric, shapes.misc, calc}
 \pgfdeclarelayer{background}
 \pgfdeclarelayer{foreground}
 \pgfsetlayers{background,main,foreground}
 
 \newcounter{example}
-\newcommand{\N}[1]{{{#1}_{\arabic{example}}}}
+%\newcommand{\N}[1]{{{#1}_{\arabic{example}}}}
+\newcommand{\N}[1]{#1}
 \newcommand{\Next}{\stepcounter{example}}
 \newcommand{\Reset}{\setcounter{example}{1}}
 
@@ -49,6 +53,7 @@
 \newcommand{\Seq}{\cdot}
 \newcommand{\Spc}{\ }
 \newcommand{\Union}{\mathrel{|}}
+\newcommand{\Sum}{\mathrel{+}}
 \newcommand{\Kleene}[1]{{#1}^\ast}
 \newcommand{\Rep}[2]{{#1}^{#2}}
 \newcommand{\Opt}[1]{#1?}
@@ -72,6 +77,7 @@
 
 \newcommand{\NT}[1]{{#1}}
 \newcommand{\T}[1]{{#1}}
+\newcommand{\Var}[1]{{#1}}
 \newcommand{\Sym}[1]{{#1}}
 
 \makeatletter
@@ -125,8 +131,9 @@ Jezik je (ne nujno končna) množica nizov.
 \end{equation*}
 
 \section{Regularni izrazi}
-Regularni izrazi so algebra nad jeziki, ki sestavljena iz osnovnih operacij $(\Union)$, $(\Seq)$, $(\ast)$ in elementov $\Char{a}$, $\Empty$, $\Null$.
+Regularni izrazi so algebra nad jeziki, ki sestavljena iz osnovnih operacij $(\Union)$, $(\Seq)$, $(\ast)$ in osnovnih elementov $\Char{a}$, $\Empty$, $\Null$.
 Z njimi lahko opišemo le podmnožico vseh jezikov, ki se imenuje "regularni jeziki".
+Dva regularna izraza sta enaka, če opisujeta enak jezik.
 
 \section{Končni avtomati}
 
@@ -2037,34 +2044,338 @@ Množice znakov $A - D$ lahko implementiramo tako, da najprej naredimo vse preho
   \end{equation*}
 \end{tcolorbox}
 
+\section{Osnovne gramatike} 
+Gramatike so v veliki meri sestavljene iz naslednjih osnovnih vzorcev.
+
+\subsubsection{Seznam}
+\begin{equation*}
+  \begin{aligned}[t]
+    \NT{L} &\Arrow \T{i} \Spc \NT{L} \Union \Null\\[1em]
+    \NT{Numbers} &\Arrow \T{num} \Spc \NT{Numbers} \Union \Null\\[1em]
+    \T{num} &= \KleenePlus{\{\Char{0}, \dots, \Char{9}\}}
+  \end{aligned}
+\end{equation*}
+\begin{lstlisting}
+$\Null$
+1
+1 2
+1 2 3
+\end{lstlisting}
+
+\subsubsection{Seznam z ločilom}
+\begin{equation*}
+  \begin{aligned}[t]
+    \NT{L} &\Arrow \T{i} \Spc \T{s} \Spc \NT{L} \Union \Null\\[1em]
+    \NT{Numbers} &\Arrow \T{num} \Spc \T{sep} \Spc \NT{Numbers} \Union \Null\\[1em]
+    \T{num} &= \KleenePlus{\{\Char{0}, \dots, \Char{9}\}}\\
+    \T{sep} &= \Char{;}
+  \end{aligned}
+\end{equation*}
+\begin{lstlisting}
+$\Null$
+1;
+1; 2;
+1; 2; 3;
+\end{lstlisting}
+Ločilo je tudi na koncu.
+
+\subsubsection{Neprazen seznam}
+Da lahko neprazen seznam razpoznamo z LL(1) razpoznavalnikom moramo gramatiko preoblikovati.
+\begin{equation*}
+  \begin{aligned}[t]
+    \NT{L} &\Arrow \T{i} \Spc \NT{L} \Union \T{i}\\[1em]
+    \NT{L} &\Arrow \T{i} \Seq (\NT{L} \Union \Null)\text{\quad izpostavimo \T{i}}\\[1em]
+    \NT{L} &\Arrow \T{i} \Spc \NT{L'}\\
+    \NT{L'} &\Arrow \NT{L} \Union \Null \text{\quad oklepaje spremenimo v novo produkcijo}\\[1em]
+    \NT{L} &\Arrow \T{i} \Spc \NT{L'}\\
+    \NT{L'} &\Arrow \T{i} \Spc \NT{L'} \Union \Null \text{\quad zamenjamo \NT{L} z desno stranjo}\\[1em]
+    \NT{L} &\Arrow \T{i} \Seq \Kleene{\T{i}}\\[1em]
+    \NT{Numbers} &\Arrow \T{num} \Spc \NT{Numbers} \Union \T{num}\\[1em]
+    \NT{Numbers} &\Arrow \T{num} \Spc \NT{Numbers'}\\
+    \NT{Numbers'} &\Arrow \T{num} \Spc \NT{Numbers'} \Union \Null\\[1em]
+    \NT{Numbers} &\Arrow \T{num} \Spc \Kleene{\T{num}}\\[1em]
+    \T{num} &= \KleenePlus{\{\Char{0}, \dots, \Char{9}\}}
+  \end{aligned}
+\end{equation*}
+\begin{lstlisting}
+1
+1 2
+1 2 3
+\end{lstlisting}
+
+\subsubsection{Neprazen seznam z ločilom}
+\begin{equation*}
+  \begin{aligned}[t]
+    \NT{L} &\Arrow \T{i} \Spc \T{s} \Spc \NT{L} \Union \T{i}\\[1em]
+    \NT{L} &\Arrow \T{i} \Seq (\T{s} \Spc \NT{L} \Union \Null)\text{\quad izpostavimo \T{i}}\\[1em]
+    \NT{L} &\Arrow \T{i} \Spc \NT{L'}\\
+    \NT{L'} &\Arrow \T{s} \Spc \NT{L} \Union \Null \text{\quad oklepaje spremenimo v novo produkcijo}\\[1em]
+    \NT{L} &\Arrow \T{i} \Spc \NT{L'}\\
+    \NT{L'} &\Arrow \T{s} \Spc \T{i} \Spc \NT{L'} \Union \Null \text{\quad zamenjamo \NT{L} z desno stranjo}\\[1em]
+    \NT{L} &\Arrow \T{i} \Seq \Kleene{(\T{s} \Spc \T{i})}\\[1em]
+    \NT{Numbers} &\Arrow \T{num} \Spc \T{sep} \Spc \NT{Numbers} \Union \T{num}\\[1em]
+    \NT{Numbers} &\Arrow \T{num} \Spc \NT{Numbers'}\\
+    \NT{Numbers'} &\Arrow \T{sep} \Spc \T{num} \Spc \NT{Numbers'} \Union \Null\\[1em]
+    \NT{Numbers} &\Arrow \T{num} \Spc \Kleene{(\T{sep} \Spc \T{num})}\\[1em]
+    \T{num} &= \KleenePlus{\{\Char{0}, \dots, \Char{9}\}}\\
+    \T{sep} &= \Char{+}
+  \end{aligned}
+\end{equation*}
+\begin{lstlisting}
+1
+1 + 2
+1 + 2 + 3
+\end{lstlisting}
+Ločila ni na koncu.
+
+\subsubsection{Opcijsko}
+\begin{equation*}
+  \begin{aligned}[t]
+    \NT{B} &\Arrow \NT{I} \Spc \T{i}\\
+    \NT{I} &\Arrow \T{i} \Union \Null \\[1em]
+    \NT{Val} &\Arrow \NT{Sign} \Spc \T{num}\\
+    \NT{Sign} &\Arrow \T{plus} \Union \T{minus} \Union \Null\\[1em]
+    \T{num} &= \KleenePlus{\{\Char{0}, \dots, \Char{9}\}}\\
+    \T{plus} &= \Char{+}\\
+    \T{minus} &= \Char{-}
+  \end{aligned}
+\end{equation*}
+\begin{lstlisting}
+1
++1
+-1
+\end{lstlisting}
+
+\subsubsection{Vsebovanje}
+Nekaj znotraj nečesa.
+\begin{equation*}
+  \begin{aligned}[t]
+    \NT{B} &\Arrow \T{l} \Spc \T{I} \Spc \T{r}\\
+    \NT{I} &\Arrow \T{i}\\[1em]
+    \NT{Box} &\Arrow \T{lbrac} \Spc \NT{Val} \Spc \T{rbrac}\\
+    \NT{Val} &\Arrow \T{num} \Union \T{star}\\[1em]
+    \T{num} &= \KleenePlus{\{\Char{0}, \dots, \Char{9}\}}\\
+    \T{lbrac} &= \Char{[}\\
+    \T{rbrac} &= \Char{]}\\
+    \T{star} &= \Char{*}
+  \end{aligned}
+\end{equation*}
+\begin{lstlisting}
+[*]
+[1]
+\end{lstlisting}
+
+\begin{equation*}
+  \begin{aligned}[t]
+    \NT{B} &\Arrow \T{l} \Spc \T{L} \Spc \T{r}\\
+    \NT{L} &\Arrow \T{i} \Spc \NT{L'}\\
+    \NT{L'} &\Arrow \T{s} \Spc \T{i} \Spc \NT{L'} \Union \Null\\[1em]
+    \NT{Box} &\Arrow \T{lbrac} \Spc \NT{Numbers} \Spc \T{rbrac}\\
+    \NT{Numbers} &\Arrow \T{num} \Spc \NT{Numbers'}\\
+    \NT{Numbers'} &\Arrow \T{sep} \Spc \T{num} \Spc \NT{Numbers'} \Union \Null\\[1em]
+    \T{num} &= \KleenePlus{\{\Char{0}, \dots, \Char{9}\}}\\
+    \T{lbrac} &= \Char{[}\\
+    \T{rbrac} &= \Char{]}\\
+    \T{sep} &= \Char{+}
+  \end{aligned}
+\end{equation*}
+\begin{lstlisting}
+[1]
+[1 + 2]
+[1 + 2 + 3]
+\end{lstlisting}
+
+\subsubsection{Gnezdenje}
+
+\begin{equation*}
+  \begin{aligned}[t]
+    \NT{B} &\Arrow \T{l} \Spc \NT{B} \Spc \T{r} \Union \NT{I}\\[1em]
+    \NT{I} &\Arrow \T{i}\\
+    \NT{Box} &\Arrow \T{lbrac} \Spc \NT{Box} \Spc \T{rbrac} \Union \NT{Val}\\
+    \NT{Val} &\Arrow \T{num} \Union \T{star}\\[1em]
+    \T{num} &= \KleenePlus{\{\Char{0}, \dots, \Char{9}\}}\\
+    \T{lbrac} &= \Char{[}\\
+    \T{rbrac} &= \Char{]}\\
+    \T{star} &= \Char{*}
+  \end{aligned}
+\end{equation*}
+\begin{lstlisting}
+[*]
+[[[1]]]
+[[[[[[[1]]]]]]]
+\end{lstlisting}
+
+\begin{equation*}
+  \begin{aligned}[t]
+    \NT{L} &\Arrow \NT{I} \Spc \NT{L'}\\
+    \NT{L'} &\Arrow \T{s} \Spc \NT{I} \Spc \NT{L'} \Union \Null\\
+    \NT{I} &\Arrow \T{i} \Union \NT{L}\\[1em]
+    \NT{Numbers} &\Arrow \T{Val} \Spc \NT{Numbers'}\\
+    \NT{Numbers'} &\Arrow \T{sep} \Spc \T{Val} \Spc \NT{Numbers'} \Union \Null\\
+    \NT{Val} &\Arrow \T{num} \Union \T{lbrac} \Spc \NT{Numbers} \Spc \T{rbrac}\\[1em]
+    \T{num} &= \KleenePlus{\{\Char{0}, \dots, \Char{9}\}}\\
+    \T{lbrac} &= \Char{[}\\
+    \T{rbrac} &= \Char{]}\\
+    \T{sep} &= \Char{+}
+  \end{aligned}
+\end{equation*}
+\begin{lstlisting}
+[1]
+[[[1] + [2] + [3]]]
+[[1 + [2] + [1 + 2 + 3]]]
+\end{lstlisting}
+
+\subsection*{Izrazi}
+
+"Naravna" gramatika za izraze.
 \begin{align*}
-  \NT{Start} &\Arrow \NT{Bitwise}\\
-  \NT{Bitwise} &\Arrow \NT{Additive} \Spc \NT{Bitwise'}\\
-  \NT{Bitwise'} &\Arrow \T{bwand} \Spc \NT{Additive} \Spc \NT{Bitwise'} \Union \T{bwor} \Spc \NT{Additive} \Spc \NT{Bitwise'} \Union \Null\\[1em]
+  \NT{Start} &\Arrow \NT{Expr}\\
+  \NT{Expr} &\Arrow \NT{Expr} \Spc \T{plus} \Spc \NT{Expr}\\
+            &\Union \NT{Expr} \Spc \T{minus} \Spc \NT{Expr}\\
+            &\Union \NT{Expr} \Spc \T{times} \Spc \NT{Expr}\\
+            &\Union \NT{Expr} \Spc \T{divide} \Spc \NT{Expr}\\
+            &\Union \T{plus} \Spc \NT{Expr} \Union \T{minus} \Spc \NT{Expr}\\
+            &\Union \T{int} \Union \T{variable}
+\end{align*}
+Ta gramatika je dvoumna.
+
+Določimo prioriteto.
+\begin{align*}
+  \NT{Start} &\Arrow \NT{Additive}\\
+  \NT{Additive} &\Arrow \NT{Additive} \Spc \T{plus} \Spc \NT{Additive} \Union \NT{Additive} \Spc \T{minus} \Spc \NT{Additive} \Union \NT{Multiplicative}\\
+  \NT{Multiplicative} &\Arrow \NT{Multiplicative} \Spc \T{times} \Spc \NT{Multiplicative} \Union \NT{Multiplicative} \Spc \T{divide} \Spc \NT{Multiplicative} \Union \NT{Unary}\\
+  \NT{Unary} &\Arrow \T{plus} \Spc \NT{Primary} \Union \T{minus} \Spc \NT{Primary} \Union \NT{Primary}\\ 
+  \NT{Primary} &\Arrow \T{int} \Union \T{variable} \Union \T{lparen} \Spc \NT{Additive} \Spc \T{rparen}
+\end{align*}
+
+Določimo asociativnost.
+\begin{align*}
+  \NT{Start} &\Arrow \NT{Additive}\\
+  \NT{Additive} &\Arrow \NT{Additive} \Spc \T{plus} \Spc \NT{Multiplicative} \Union \NT{Additive} \Spc \T{minus} \Spc \NT{Multiplicative} \Union \NT{Multiplicative}\\
+  \NT{Multiplicative} &\Arrow \NT{Multiplicative} \Spc \T{times} \Spc \NT{Unary} \Union \NT{Multiplicative} \Spc \T{divide} \Spc \NT{Unary} \Union \NT{Unary}\\
+  \NT{Unary} &\Arrow \T{plus} \Spc \NT{Primary} \Union \T{minus} \Spc \NT{Primary} \Union \NT{Primary}\\ 
+  \NT{Primary} &\Arrow \T{int} \Union \T{variable} \Union \T{lparen} \Spc \NT{Additive} \Spc \T{rparen}
+\end{align*}
+Ta gramatika je enoumna, vendar ni LL(1), saj imamo levo rekurzijo.
+
+Obrnemo asociativnost (to bomo morali kasneje popraviti).
+\begin{align*}
+  \NT{Start} &\Arrow \NT{Additive}\\
+  \NT{Additive} &\Arrow \NT{Multiplicative} \Spc \T{plus} \Spc \NT{Additive} \Union \NT{Multiplicative} \Spc \T{minus} \Spc \NT{Additive} \Union \NT{Multiplicative}\\
+  \NT{Multiplicative} &\Arrow \NT{Unary} \Spc \T{times} \Spc \NT{Multiplicative} \Union \NT{Unary} \Spc \T{divide} \Spc \NT{Multiplicative} \Union \NT{Unary}\\
+  \NT{Unary} &\Arrow \T{plus} \Spc \NT{Primary} \Union \T{minus} \Spc \NT{Primary} \Union \NT{Primary}\\ 
+  \NT{Primary} &\Arrow \T{int} \Union \T{variable} \Union \T{lparen} \Spc \NT{Additive} \Spc \T{rparen}
+\end{align*}
+
+Izpostavimo.
+\begin{align*}
+  \NT{Start} &\Arrow \NT{Additive}\\
+  \NT{Additive} &\Arrow \NT{Multiplicative} \Seq (\T{plus} \Spc \NT{Additive} \Union \T{minus} \Spc \NT{Additive} \Union \Null)\\
+  \NT{Multiplicative} &\Arrow \NT{Unary} \Seq (\T{times} \Spc \NT{Multiplicative} \Union \T{divide} \Spc \NT{Multiplicative} \Union \Null)\\
+  \NT{Unary} &\Arrow \T{plus} \Spc \NT{Primary} \Union \T{minus} \Spc \NT{Primary} \Union \NT{Primary}\\ 
+  \NT{Primary} &\Arrow \T{int} \Union \T{variable} \Union \T{lparen} \Spc \NT{Additive} \Spc \T{rparen}
+\end{align*}
+
+Oklepaje spremenimo v novo produkcijo.
+\begin{align*}
+  \NT{Start} &\Arrow \NT{Additive}\\
+  \NT{Additive} &\Arrow \NT{Multiplicative} \Spc \NT{Additive'}\\
+  \NT{Additive'} &\Arrow \T{plus} \Spc \NT{Additive} \Union \T{minus} \Spc \NT{Additive} \Union \Null\\
+  \NT{Multiplicative} &\Arrow \NT{Unary} \Spc \NT{Multiplicative'}\\
+  \NT{Multiplicative'} &\Arrow \T{times} \Spc \NT{Multiplicative} \Union \T{divide} \Spc \NT{Multiplicative} \Union \Null\\
+  \NT{Unary} &\Arrow \T{plus} \Spc \NT{Primary} \Union \T{minus} \Spc \NT{Primary} \Union \NT{Primary}\\ 
+  \NT{Primary} &\Arrow \T{int} \Union \T{variable} \Union \T{lparen} \Spc \NT{Additive} \Spc \T{rparen}
+\end{align*}
+
+Odpravimo \emph{mutual} rekurzijo (vstavimo).
+\begin{align*}
+  \NT{Start} &\Arrow \NT{Additive}\\[1em]
   \NT{Additive} &\Arrow \NT{Multiplicative} \Spc \NT{Additive'}\\
   \NT{Additive'} &\Arrow \T{plus} \Spc \NT{Multiplicative} \Spc \NT{Additive'} \Union \T{minus} \Spc \NT{Multiplicative} \Spc \NT{Additive'} \Union \Null\\[1em]
   \NT{Multiplicative} &\Arrow \NT{Unary} \Spc \NT{Multiplicative'}\\
   \NT{Multiplicative'} &\Arrow \T{times} \Spc \NT{Unary} \Spc \NT{Multiplicative'} \Union \T{divide} \Spc \NT{Unary} \Spc \NT{Multiplicative'} \Union \Null\\[1em]
   \NT{Unary} &\Arrow \T{plus} \Spc \NT{Primary} \Union \T{minus} \Spc \NT{Primary} \Union \NT{Primary}\\[1em]
-  \NT{Primary} &\Arrow \T{int} \Union \T{hex} \Union \T{variable} \Union \T{lparen} \Spc \NT{Bitwise} \Spc \T{rparen}
+  \NT{Primary} &\Arrow \T{int} \Union \T{variable} \Union \T{lparen} \Spc \NT{Additive} \Spc \T{rparen}
 \end{align*}
+Ta gramatika je LL(1).
 
+\Ex
+\begin{lstlisting}
+1 * 2 + 3
+\end{lstlisting}
+\begin{equation*}
+  \begin{aligned}
+    \NT{Start} &\Derive \NT{Additive}\\
+    &\Derive \NT{Multiplicative} \Spc \NT{Additive'}\\
+    &\Derive \NT{Unary} \Spc \NT{Multiplicative'} \Spc \NT{Additive'}\\
+    &\Derive \NT{Primary} \Spc \NT{Multiplicative'} \Spc \NT{Additive'}\\
+    &\Derive \T{int} \Spc \NT{Multiplicative'} \Spc \NT{Additive'}\\
+    &\Derive \T{int} \Spc \T{times} \Spc \NT{Unary} \Spc \NT{Multiplicative'} \Spc \NT{Additive'}\\
+    &\Derive \T{int} \Spc \T{times} \Spc \NT{Primary} \Spc \NT{Multiplicative'} \Spc \NT{Additive'}\\
+    &\Derive \T{int} \Spc \T{times} \Spc \T{int} \Spc \NT{Multiplicative'} \Spc \NT{Additive'}\\
+    &\Derive \T{int} \Spc \T{times} \Spc \T{int} \Spc \Null \Spc \NT{Additive'}\\
+    &\Derive \T{int} \Spc \T{times} \Spc \T{int} \Spc \NT{Additive'}\\
+    &\Derive \T{int} \Spc \T{times} \Spc \T{int} \Spc \T{plus} \Spc \NT{Multiplicative} \Spc \NT{Additive'}\\
+    &\Derive \T{int} \Spc \T{times} \Spc \T{int} \Spc \T{plus} \Spc \NT{Unary} \Spc \NT{Multiplicative'} \Spc \NT{Additive'}\\
+    &\Derive \T{int} \Spc \T{times} \Spc \T{int} \Spc \T{plus} \Spc \NT{Primary} \Spc \NT{Multiplicative'} \Spc \NT{Additive'}\\
+    &\Derive \T{int} \Spc \T{times} \Spc \T{int} \Spc \T{plus} \Spc \T{int} \Spc \NT{Multiplicative'} \Spc \NT{Additive'}\\
+    &\Derive \T{int} \Spc \T{times} \Spc \T{int} \Spc \T{plus} \Spc \T{int} \Spc \Null \Spc \NT{Additive'}\\
+    &\Derive \T{int} \Spc \T{times} \Spc \T{int} \Spc \T{plus} \Spc \T{int} \Spc \NT{Additive'}\\
+    &\Derive \T{int} \Spc \T{times} \Spc \T{int} \Spc \T{plus} \Spc \T{int} \Spc \Null\\
+    &\Derive \T{int} \Spc \T{times} \Spc \T{int} \Spc \T{plus} \Spc \T{int}
+  \end{aligned}
+\end{equation*}
+Na vrhu je $\NT{Additive}$.
+
+\newpage
+\Ex
+\begin{lstlisting}
+1 * (2 + 3)
+\end{lstlisting}
+\begin{equation*}
+  \begin{aligned}
+    \NT{Start} &\Derive \NT{Additive}\\
+    &\Derive \NT{Multiplicative} \Spc \NT{Additive'}\\
+    &\Derive \NT{Unary} \Spc \NT{Multiplicative'} \Spc \NT{Additive'}\\
+    &\Derive \NT{Primary} \Spc \NT{Multiplicative'} \Spc \NT{Additive'}\\
+    &\Derive \T{int} \Spc \NT{Multiplicative'} \Spc \NT{Additive'}\\
+    &\Derive \T{int} \Spc \T{times} \Spc \NT{Unary} \Spc \NT{Multiplicative'} \Spc \NT{Additive'}\\
+    &\Derive \T{int} \Spc \T{times} \Spc \NT{Primary} \Spc \NT{Multiplicative'} \Spc \NT{Additive'}\\
+    &\Derive \T{int} \Spc \T{times} \Spc \T{lparen} \Spc \NT{Additive} \Spc \T{rparen} \Spc \NT{Multiplicative'} \Spc \NT{Additive'}\\
+    &\Derive \T{int} \Spc \T{times} \Spc \T{lparen} \Spc \NT{Multiplicative} \Spc \NT{Additive'} \Spc \T{rparen} \Spc \NT{Multiplicative'} \Spc \NT{Additive'}\\
+    &\Derive \T{int} \Spc \T{times} \Spc \T{lparen} \Spc \NT{Unary} \Spc \NT{Additive'} \Spc \T{rparen} \Spc \NT{Multiplicative'} \Spc \NT{Additive'}\\
+    &\Derive \T{int} \Spc \T{times} \Spc \T{lparen} \Spc \NT{Primary} \Spc \NT{Additive'} \Spc \T{rparen} \Spc \NT{Multiplicative'} \Spc \NT{Additive'}\\
+    &\Derive \T{int} \Spc \T{times} \Spc \T{lparen} \Spc \T{int} \Spc \NT{Additive'} \Spc \T{rparen} \Spc \NT{Multiplicative'} \Spc \NT{Additive'}\\
+    &\Derive \T{int} \Spc \T{times} \Spc \T{lparen} \Spc \T{int} \Spc \T{plus} \Spc \NT{Multiplicative} \Spc \NT{Additive'} \Spc \T{rparen} \Spc \NT{Multiplicative'} \Spc \NT{Additive'}\\
+    &\Derive \T{int} \Spc \T{times} \Spc \T{lparen} \Spc \T{int} \Spc \T{plus} \Spc \NT{Unary} \Spc \NT{Additive'} \Spc \T{rparen} \Spc \NT{Multiplicative'} \Spc \NT{Additive'}\\
+    &\Derive \T{int} \Spc \T{times} \Spc \T{lparen} \Spc \T{int} \Spc \T{plus} \Spc \NT{Primary} \Spc \NT{Additive'} \Spc \T{rparen} \Spc \NT{Multiplicative'} \Spc \NT{Additive'}\\
+    &\Derive \T{int} \Spc \T{times} \Spc \T{lparen} \Spc \T{int} \Spc \T{plus} \Spc \T{int} \Spc \NT{Additive'} \Spc \T{rparen} \Spc \NT{Multiplicative'} \Spc \NT{Additive'}\\
+    &\Derive \T{int} \Spc \T{times} \Spc \T{lparen} \Spc \T{int} \Spc \T{plus} \Spc \T{int} \Spc \Null \Spc \T{rparen} \Spc \NT{Multiplicative'} \Spc \NT{Additive'}\\
+    &\Derive \T{int} \Spc \T{times} \Spc \T{lparen} \Spc \T{int} \Spc \T{plus} \Spc \T{int} \Spc \T{rparen} \Spc \NT{Multiplicative'} \Spc \NT{Additive'}\\
+    &\Derive \T{int} \Spc \T{times} \Spc \T{lparen} \Spc \T{int} \Spc \T{plus} \Spc \T{int} \Spc \T{rparen} \Spc \Null \Spc \NT{Additive'}\\
+    &\Derive \T{int} \Spc \T{times} \Spc \T{lparen} \Spc \T{int} \Spc \T{plus} \Spc \T{int} \Spc \T{rparen} \Spc \NT{Additive'}\\
+    &\Derive \T{int} \Spc \T{times} \Spc \T{lparen} \Spc \T{int} \Spc \T{plus} \Spc \T{int} \Spc \T{rparen} \Spc \Null\\
+    &\Derive \T{int} \Spc \T{times} \Spc \T{lparen} \Spc \T{int} \Spc \T{plus} \Spc \T{int} \Spc \T{rparen}
+  \end{aligned}
+\end{equation*}
+Na vrhu je $\NT{Multiplicative}$, do $\NT{Additive}$ pridemo skozi oklepaje.
+
+Gramatiko lahko bolj kompaktno predstavimo z uporabo EBNF, kjer imajo produkcije regularne izraze na desni strani.
 \begin{align*}
-  \NT{Start} &\Arrow \NT{Bitwise}\\
-  \NT{Bitwise} &\Arrow \NT{Additive} \Spc \Kleene{(\T{bwand} \Spc \NT{Additive} \Union \T{bwor} \Spc \NT{Additive})}\\
+  \NT{Start} &\Arrow \NT{Additive}\\
   \NT{Additive} &\Arrow \NT{Multiplicative} \Spc \Kleene{(\T{plus} \Spc \NT{Multiplicative} \Union \T{minus} \Spc \NT{Multiplicative})}\\
   \NT{Multiplicative} &\Arrow \NT{Unary} \Spc \Kleene{(\T{times} \Spc \NT{Unary} \Spc \Union \T{divide} \Spc \NT{Unary})}\\
   \NT{Unary} &\Arrow \T{plus} \Spc \NT{Primary} \Union \T{minus} \Spc \NT{Primary} \Union \NT{Primary}\\
-  \NT{Primary} &\Arrow \T{int} \Union \T{hex} \Union \T{variable} \Union \T{lparen} \Spc \NT{Bitwise} \Spc \T{rparen}
+  \NT{Primary} &\Arrow \T{int} \Union \T{variable} \Union \T{lparen} \Spc \NT{Additive} \Spc \T{rparen}
 \end{align*}
 
+Še bolj kompaktna oblika.
 \begin{align*}
-  \NT{Start} &\Arrow \NT{Bitwise}\\
-  \NT{Bitwise} &\Arrow \NT{Additive} \Spc \Kleene{((\T{bwand} \Union \T{bwor}) \Spc \NT{Additive})}\\
+  \NT{Start} &\Arrow \NT{Additive}\\
   \NT{Additive} &\Arrow \NT{Multiplicative} \Spc \Kleene{((\T{plus} \Union \T{minus}) \Spc \NT{Multiplicative})}\\
   \NT{Multiplicative} &\Arrow \NT{Unary} \Spc \Kleene{((\T{times} \Union \T{divide}) \Spc \NT{Unary})}\\
   \NT{Unary} &\Arrow \Opt{(\T{plus} \Union \T{minus})} \Spc \NT{Primary}\\
-  \NT{Primary} &\Arrow \T{int} \Union \T{hex} \Union \T{variable} \Union \T{lparen} \Spc \NT{Bitwise} \Spc \T{rparen}
+  \NT{Primary} &\Arrow \T{int} \Union \T{variable} \Union \T{lparen} \Spc \NT{Additive} \Spc \T{rparen}
 \end{align*}
 
 \section{FIRST}
@@ -2118,28 +2429,416 @@ Po \cite{dragonbook} za izračun $\FOLLOW$ za vse neterminale $\NT{A}$ uporabimo
   \item Če obstaja produkcija $\NT{A} \Arrow \alpha \Spc \NT{B}$ ali produkcija $\NT{A} \Arrow \alpha \Spc \NT{B} \Spc \beta$, kjer $\FIRST(\beta)$ vsebuje $\Null$, potem je vse iz $\FOLLOW(\NT{A})$ v $\FOLLOW(\NT{B})$.
 \end{enumerate}
 
-%\section{Dodatno: Konstrukcija podmnožic}
-%Pri vajah se bomo omejili na deterministične avtomate.
-%Kljub temu pa je pravkar opisana konstrukcija dovolj splošna, da omogoča sestavo avtomatov za vse možne regularne izraze.
-%Težava je le, da operatorji ne zagotavljajo, da bo nastali avtomat determinističen.
-%Nedeterminističen avtomat lahko pretvorimo v determinističnega z uporabo konstrukcije podmnožic (stanja nastalega avtomata bodo označena s podmnožicami $Q$). 
-%
-%\begin{algorithm}
-%  input: $(Q, \Sigma, \delta, q_{0}, F)$
-%  output: $(Q', \Sigma, \delta', q'_{0}, F')$
-%  $q'_0$ $\gets$ $\{q_{0}\}$
-%
-%  $Q'$ $\gets$ $\{q'_0\}$
-%  $\delta'$ $\gets$ $\emptyset$
-%  foreach $q' \in Q'$
-%    foreach $q \in q'$
-%      $q''$ $\gets$ $\emptyset$
-%      foreach $a \in \Sigma$
-%        $q''$ $\gets$ $q'' \cup \{\delta(q, a)\}$
-%      $Q'$ $\gets$ $Q' \cup \{q'\}$
-%      $\delta'$ $\gets$ $\delta' \cup \{(q', a) \mapsto q''\}$
-%  $F'$ $\gets$ $\{q' \mid q' \in Q' \land q' \cap F \neq \emptyset \}$
-%\end{algorithm}
+\chapter{Sintaktična drevesa}
+
+Sintaktična drevesa je najlaže predstaviti z algebraičnimi podatkovnimi tipi.
+
+\section{Algebraični podatkovni tipi} 
+Algebraični podatkovni tipi so algebra nad podatkovnimi tipi, ki sestavljena iz osnovnih operacij, produkt $(\Seq)$ in vstota $(\Sum)$, enumeracij $0, 1, \dots$ in spremenljivk $\Var{a}, \Var{b}, \dots$. Enumeracije predstavljajo množice z $n$ elementi, za vse $n = 0, 1, \dots$.
+Definiramo lahko tudi potence $n^m$, ki predstavljajo polja, tabele ali funkcije (v kolikor so te definirane za vse vhodne vrednosti).
+
+\Ex
+\begin{equation*}
+  \begin{aligned}
+    Pair &= 2 \Seq 3\\
+    Bool &= 1 \Sum 1\\
+    Fun &= 2 ^ 3
+  \end{aligned}
+\end{equation*}
+
+Dva podatkovna tipa sta enaka, če ju opisuje enak izraz.
+Ta koncept enakosti je preveč omejujoč, zato raje uporabljamo bolj ohlapno obliko enakosti, izomorfnost.
+Dva podatkovna tipa sta izomorfna, če je mogoče zapisati dve funkciji: transformacijo iz prvega v drugega, transformacijo iz drugega v prvega.
+
+\Ex
+\begin{equation*}
+  \begin{aligned}
+    Pair &= 2 \Seq 3 = 6\\
+    Bool &= 1 \Sum 1 = 2\\
+    Fun &= 2 \Seq 2 \Seq 2 = 8
+  \end{aligned}
+\end{equation*}
+Podatkovni tipi z enakim številom elementov so izomorfni!
+
+Pravila za transformacijo so enaka, kot za $\mathbb{N}_0$ (osnovnošolska matematika).
+\begin{tcolorbox}[title={Pravila}]
+  \begin{equation*}
+    \begin{aligned}
+      0 \Seq \Var{a} &= 0\\
+      1 \Seq \Var{a} &= 1\\
+      \Var{a} \Seq \Var{b} &= \Var{b} \Seq \Var{a}\\
+      \Var{a} \Seq (\Var{b} \Seq \Var{c}) &= (\Var{a} \Seq \Var{b}) \Seq \Var{c} = \Var{a} \Seq \Var{b} \Seq \Var{c}\\
+      0 \Sum \Var{a} &= \Var{a}\\
+      \Var{a} \Sum \Var{b} &= \Var{b} \Sum \Var{a}\\
+      \Var{a} \Sum \Var{a} &\neq \Var{a}\\
+      \Var{a} \Sum (\Var{b} \Sum \Var{c}) &= (\Var{a} \Sum \Var{b}) \Sum \Var{c} = \Var{a} \Sum \Var{b} \Sum \Var{c} \\
+      \Var{a} \Seq (\Var{b} \Sum \Var{c}) &= \Var{a} \Seq \Var{b} \Sum \Var{a} \Seq \Var{c}\\
+      \Var{a}^0 &= 1\\
+      1^\Var{a} &= 1\\
+      \Var{a}^1 &= \Var{a}\\
+      \Var{a}^{\Var{b} \Sum \Var{c}} &= \Var{a}^\Var{b} \Seq \Var{a}^\Var{c}\\
+      (\Var{a}^{\Var{b}})^\Var{c} &= \Var{a}^{\Var{b} \Seq \Var{c}}\\
+      (\Var{a}\Seq \Var{b})^\Var{c} &= \Var{a}^\Var{c} \Seq \Var{b}^\Var{c}\\
+    \end{aligned}
+  \end{equation*}
+\end{tcolorbox}
+
+\subsubsection*{Funkcije}
+Definiramo lahko tudi funkcije.
+Argumenti predstavljajo parametrični polimorfizem.
+
+\Ex
+\begin{equation*}
+  \begin{aligned}
+    Pair(a, b) &= a \Seq b\\
+    Either(a, b) &= a \Sum b\\
+  \end{aligned}
+\end{equation*}
+
+\subsubsection*{Rekurzija}
+Lahko imamo tudi rekurzivne podatkovne tipe.
+
+\Ex
+\begin{equation*}
+  \begin{aligned}
+    List(\Var{a}) &= \Var{a} \Seq List(\Var{a}) \Sum 1\\[1em]
+    List(\Var{a}) &= \Var{a} \Seq (\Var{a} \Seq List(\Var{a}) \Sum 1) \Sum 1\\
+         &= \Var{a} \Seq \Var{a} \Sum \Var{a} \Seq (\Var{a} \Seq List(\Var{a})) \Sum \Var{a} \Seq 1 \Sum 1\\
+         &= \Var{a} \Seq \Var{a} \Seq List(\Var{a}) \Sum \Var{a} \Seq \Var{a} \Sum \Var{a} \Sum 1\\
+         &= \Var{a} \Seq \Var{a} \Seq (\Var{a} \Seq List(\Var{a}) \Sum 1) \Sum \Var{a} \Seq \Var{a} \Sum \Var{a} \Sum 1\\
+         &= \Var{a} \Seq \Var{a} \Seq \Var{a} \Sum \Var{a} \Seq \Var{a} \Seq (\Var{a} \Seq List(\Var{a})) \Sum \Var{a} \Seq \Var{a} \Seq 1 \Sum \Var{a} \Sum 1\\
+         &= \Var{a} \Seq \Var{a} \Seq \Var{a} \Seq List(\Var{a}) \Sum \Var{a} \Seq \Var{a} \Seq \Var{a} \Sum \Var{a} \Seq \Var{a} \Sum \Var{a} \Sum 1\\
+         &= \dots
+  \end{aligned}
+\end{equation*}
+Seznam lahko vsebuje $0$ ali $1$ ali $2$ ali $3$ ali $\dots$ elementov.
+
+\Ex
+\begin{equation*}
+  \begin{aligned}
+    Binary(\Var{a}) &= Binary(\Var{a}) \Seq \Var{a} \Seq Binary(\Var{a}) \Sum 1\\[1em]
+    Binary(\Var{a}) &= (Binary(\Var{a}) \Seq \Var{a} \Seq Binary(\Var{a}) \Sum 1) \Seq \Var{a} \Seq (Binary(\Var{a}) \Seq \Var{a} \Seq Binary(\Var{a}) \Sum 1)\\
+           &= (Binary(\Var{a}) \Seq \Var{a} \Seq Binary(\Var{a})) \Seq \Var{a} \Seq (Binary(\Var{a}) \Seq \Var{a} \Seq Binary(\Var{a}))\\ 
+           &\Sum (Binary(\Var{a}) \Seq \Var{a} \Seq Binary(\Var{a})) \Seq \Var{a} \Seq 1\\
+           &\Sum 1 \Seq \Var{a} \Seq (Binary(\Var{a}) \Seq \Var{a} \Seq Binary(\Var{a}))\\
+           &\Sum 1 \Seq \Var{a} \Seq 1\\
+           &\Sum 1\\
+           &= \dots
+  \end{aligned}
+\end{equation*}
+Opisuje binarna drevesa.
+Na sezname lahko gledamo tudi kot "unarna" drevesa.
+Opazite, da če poračunamo do konca dobimo enak izraz, kot pri seznamu.
+To pomeni, da so seznami in binarna drevesa izomorfni!
+
+\Ex
+\begin{equation*}
+  \begin{aligned}
+  Tree(\Var{a}) &= List(Tree(\Var{a})) \Sum \Var{a}\\
+  Tree(\Var{a}) &= \Var{a} \Seq List(Tree(\Var{a}))
+  \end{aligned}
+\end{equation*}
+Opisuje $n$-drevesa, torej drevesa s poljubnim številom otrok.
+Obstaja več izomorfnih definicij.
+
+\Ex
+\begin{equation*}
+  \begin{aligned}
+    NonEmpty(\Var{a}) &= a \Seq NonEmpty(\Var{a}) \Seq a\\
+    NonEmpty(\Var{a}) &= a \Seq (NonEmpty(\Var{a}) \Sum 1)\\[1em] 
+    NonEmpty(\Var{a}) &= a \Seq NonEmpty'(\Var{a})\\
+    NonEmpty'(\Var{a}) &= NonEmpty(\Var{a}) \Sum 1\\[1em]
+    NonEmpty(\Var{a}) &= a \Seq NonEmpty'(\Var{a})\\
+    NonEmpty'(\Var{a}) &= a \Seq NonEmpty'(\Var{a}) \Sum 1\\[1em]
+    NonEmpty(\Var{a}) &= a \Seq List(\Var{a})\\
+  \end{aligned}
+\end{equation*}
+Opisuje neprazen seznam.
+
+\subsubsection*{Implementacija}
+Algebraične podatkovne tipe lahko implementiramo na več načinov.
+
+V OOP jezikih operacijo $(\Seq)$ predstavimo kot kompozicijo (vprašamo se z in) in operacijo $(\Sum)$ kot dedovanje iz vmesnika (vprašamo se z ali).
+Spomnite se, da obstajata dve obliki dedovanja:
+\begin{itemize}
+  \item Dedovanje iz vmesnika, katerega namen je posplošitev.
+    Torej imamo več razredov, ki jih lahko uporabljamo na enak način (imajo enake metode).
+  \item Dedovanje iz razreda, katerega namen je pouporaba.
+    Torej želimo implementirati različico nekega razreda ali pa imamo pripravljeno delno implementacijo razreda, na podlagi katere ustvarjamo nove razrede.
+\end{itemize}
+
+\Ex
+
+Seznam je \textbf{ali} celica, ki vsebuje vrednost \textbf{in} preostanek seznama, \textbf{ali} konec seznama.
+
+\begin{center}
+\begin{tikzpicture}[draw, minimum width=0.5cm, minimum height=0.5cm]
+    \node[draw] (h1) at (0, 0) {};
+    \node[draw] (t1) at (0.5, 0) {};
+
+    \node[draw] (h2) at (2, 0) {};
+    \node[draw] (t2) at (2.5, 0) {};
+
+    \node[draw] (h3) at (4, 0) {};
+    \node[draw] (t3) at (4.5, 0) {};
+
+    \node[draw] (e) at (6, 0) {};
+    \path (e) pic {cross=0.35cm};
+
+    \draw (t1.center) edge[{Circle[]}-{Straight Barb[]}] (h2);
+    \draw (t2.center) edge[{Circle[]}-{Straight Barb[]}] (h3);
+    \draw (t3.center) edge[{Circle[]}-{Straight Barb[]}] (e);
+\end{tikzpicture}
+\end{center}
+
+\Ex
+
+Binarno drevo je \textbf{ali} vozlišče, ki vsebuje levega otroka \textbf{in} vrednost \textbf{in} desnega otroka, \textbf{ali} list.
+
+\begin{center}
+\begin{tikzpicture}[draw, minimum width=0.5cm, minimum height=0.5cm]
+    \node[draw] (l1) at (-0.5, 0) {};
+    \node[draw] (v1) at (0, 0) {};
+    \node[draw] (r1) at (0.5, 0) {};
+
+    \node[draw] (l2) at (-3, -1) {};
+    \node[draw] (v2) at (-2.5, -1) {};
+    \node[draw] (r2) at (-2, -1) {};
+
+    \node[draw] (l3) at (2, -1) {};
+    \node[draw] (v3) at (2.5, -1) {};
+    \node[draw] (r3) at (3, -1) {};
+
+    \node[draw] (e1) at (-4, -2) {};
+    \node[draw] (e2) at (-1, -2) {};
+
+    \node[draw] (e3) at (4, -2) {};
+    \node[draw] (e4) at (1, -2) {};
+    \path (e1) pic {cross=0.35cm};
+    \path (e2) pic {cross=0.35cm};
+    \path (e3) pic {cross=0.35cm};
+    \path (e4) pic {cross=0.35cm};
+
+    \draw (l1.center) edge[{Circle[]}-{Straight Barb[]}] (v2.north);
+    \draw (r1.center) edge[{Circle[]}-{Straight Barb[]}] (v3.north);
+    \draw (l2.center) edge[{Circle[]}-{Straight Barb[]}] (e1.north);
+    \draw (r2.center) edge[{Circle[]}-{Straight Barb[]}] (e2.north);
+    \draw (l3.center) edge[{Circle[]}-{Straight Barb[]}] (e4.north);
+    \draw (r3.center) edge[{Circle[]}-{Straight Barb[]}] (e3.north);
+\end{tikzpicture}
+\end{center}
+
+V modernih OOP jezikih obstaja implementacija $0$, ki se imenuje \emph{Void}, in implementacija $1$, ki se imenuje \emph{Unit}.
+\emph{Void} ni enak ključni besedi \texttt{void} iz C++, \texttt{void} je v resnici \emph{Unit}!
+Razlog je, da procedure ne morejo vračati nič, saj ne moremo ustvariti primerka nič, ker nič ne obstaja.
+Lahko pa vračajo enoto, ta ima en sam primerek.
+Če ta obrazložitev zveni preveč filozofsko, se spomnite, da je $0$ prazna množica in $1$ množica z enim elementom.
+
+V funkcijskih jezikih operacijo ${(\Seq)}$ predstavimo kot tuple ali record in operacijo ${(\Sum)}$ kot označeno unijo.
+Mogoče pa ju je implementirati tudi izključno z uporabo funkcij (Church encoding).
+
+V C++ lahko uporabimo OOP implementacijo ali operacijo ${(\Seq)}$ predstavimo kot \texttt{struct} in operacijo ${(\Sum)}$ kot kombinacijo \texttt{union} in oznake (torej implementiramo označeno unijo).
+V novejših standardih, implementacija označene unije že obstaja v standardni knjižnici \texttt{std::variant}.
+
+\section{Abstraktno sintaktično drevo}
+Za vsak programski jezik obstaja "naravna" gramatika, ki pa je zaradi omejitev razčlenjevalnikov pogosto ne moremo direktno uporabiti.
+Če to "naravno" gramatiko pretvorimo v podatkoven tip dobimo abstraktno sintaktično drevo (AST).
+
+\Ex
+\begin{equation*}
+  \begin{aligned}[t]
+    \NT{Numbers} \Arrow \T{num} \Spc \NT{Numbers} \Union \Null\\[1em]
+    \T{num} = \KleenePlus{\{\Char{0}, \dots, \Char{9}\}}
+  \end{aligned}
+  \qquad
+  \begin{aligned}[t]
+    Numbers &= Num \Seq Numbers \Sum 1\\
+    Num &= Int\\
+    Int &= 2^{32}\\
+    Numbers &= List(Int)
+  \end{aligned}
+\end{equation*}
+Pretvorba je 1:1, samo zamenjamo operacije.
+Za terminale, če je mogoče, uporabimo vgrajene tipe, čeprav določenih leksemov ne bo mogoče pretvoriti v ta podatkovni tip.
+
+\Ex
+\begin{equation*}
+  \begin{aligned}[t]
+    \NT{Expr} &\Arrow \NT{Expr} \Spc \T{plus} \Spc \NT{Expr} \\
+    &\Union \NT{Expr} \Spc \T{minus} \Spc \NT{Expr} \\
+    &\Union \T{num}\\
+    &\Union \T{var}\\[1em]
+    \T{num} &= \KleenePlus{\{\Char{0}, \dots, \Char{9}\}}\\
+    \T{char} &= \{\Char{A}, \dots, \Char{Z}, \Char{a}, \dots, \Char{z}, \Char{0}, \dots, \Char{9} \}\\
+    \T{var} &= \KleenePlus{\T{char}}\\
+    \T{plus} &= \Char{+}\\
+    \T{minus} &= \Char{-}\\
+  \end{aligned}
+  \qquad
+  \begin{aligned}[t]
+    Expr &= Expr \Seq Plus \Seq Expr \\
+    &\Sum Expr \Seq Minus \Seq Expr \\
+    &\Sum Num\\
+    &\Sum Var\\
+    Num &= Int\\
+    Var &= String\\
+    Plus &= 1\\
+    Minus &= 1\\[1em]
+    Expr &= Expr \Seq Expr \\
+    &\Sum Expr \Seq Expr \\
+    &\Sum Int\\
+    &\Sum Var
+  \end{aligned}
+\end{equation*}
+Opazite, da imata $\T{plus}$ in $\T{minus}$ samo eno možno vrednost, torej sta izomorfna $1$.
+Zato ju lahko izpustimo iz AST.
+Izrazi so zelo podobni binarnim drevesom, le da imamo različno vrsto vozlišča za vsako operacijo.
+
+\Ex
+\begin{equation*}
+  \begin{aligned}[t]
+    \NT{Stmt} &\Arrow \NT{Var} \Spc \T{assign} \Spc \NT{Expr} \NT{Stmt}\\
+    &\Union \T{print} \Seq \NT{Expr} \Spc \NT{Stmt}\\
+    &\Union \Null\\[1em]
+    \T{char} &= \{\Char{A}, \dots, \Char{Z}, \Char{a}, \dots, \Char{z}, \Char{0}, \dots, \Char{9} \}\\
+    \T{var} &= \KleenePlus{\T{char}}\\
+    \T{assign} &= \Char{=}\\
+    \T{semi} &= \Char{;}\\
+    \T{print} &= \Char{print}\\
+  \end{aligned}
+  \qquad
+  \begin{aligned}[t]
+    Stmt &= Var \Seq Assign \Seq Expr \Seq Stmt \\
+    &\Sum Print \Seq Expr \Seq Stmt \\
+    &\Sum 1\\
+    Var &= String\\
+    Assign &= 1\\
+    Semi &= 1\\
+    Print &= 1\\[1em]
+    Stmt &= Var \Seq Expr \Seq Stmt \\
+    &\Sum Expr \Seq Stmt \\
+    &\Sum 1\\
+  \end{aligned}
+\end{equation*}
+Izjave so zelo podobne seznamom, le da imamo različeno vrsto celice za vsak ukaz.
+
+\section{Konkretno sintaktično drevo}
+Za razčlenjevanje moramo "naravno" gramatiko preoblikovati.
+Če preoblikovano gramatiko pretvorimo v podatkoven tip dobimo konkretno sintaktično drevo (CST).
+Ker je nadaljnje transformacije lažje izvesti nad AST, vedno najprej pretvorimo CST v AST.
+Pretvorbo je mogoče izvesti kar med razčlenjevanjem (torej CST ne potrebujemo).
+
+\chapter{Drevesne gramatike}
+Podobno kot lahko imamo gramatike nad nizi, lahko imamo gramatike nad drevesi.
+V primeru dreves so terminali vozlišča z $n$ otroci, za $n = 0, 1, 2 \dots$.
+
+\Ex
+\begin{equation*}
+  \begin{aligned}
+    List &\Arrow cell(Num, List) \Union end()\\
+    Num &\Arrow int()\\[1em]
+    List &\Derive cell(Num, List)\\
+      &\Derive cell(int(), List)\\
+      &\Derive cell(int(), cell(Num, List))\\
+      &\Derive cell(int(), cell(int(), List))\\
+      &\Derive cell(int(), cell(int(), cell(Num, List)))\\
+      &\Derive cell(int(), cell(int(), cell(int(), end())))\\
+  \end{aligned}
+\end{equation*}
+
+\Ex
+\begin{equation*}
+  \begin{aligned}
+    Binary &\Arrow node(Binary, Num, Binary) \Union leaf()\\
+    Num &\Arrow int()\\[1em]
+    Binary &\Derive node(Binary, Num, Binary)\\
+      &\Derive node(node(Binary, Num, Binary), Num, Binary)\\
+      &\Derive node(node(leaf(), Num, Binary), Num, Binary)\\
+      &\Derive node(node(leaf(), int(), Binary), Num, Binary)\\
+      &\Derive node(node(leaf(), int(), leaf()), Num, Binary)\\
+      &\Derive node(node(leaf(), int(), leaf()), int(), Binary)\\
+      &\Derive node(node(leaf(), int(), leaf()), int(), node(Binary, Num, Binary))\\
+      &\Derive node(node(leaf(), int(), leaf()), int(), node(leaf(), Num, Binary))\\
+      &\Derive node(node(leaf(), int(), leaf()), int(), node(leaf(), int(), Binary))\\
+      &\Derive node(node(leaf(), int(), leaf()), int(), node(leaf(), int(), leaf()))\\
+  \end{aligned}
+\end{equation*}
+
+Algebraični podatkovni tipi \textbf{so} regularne drevesne gramatike.
+
+Dovolimo lahko tudi vozlišča, ki imajo poljubno število otrok.
+Torej otroci vozlišča spet tvorijo jezik.
+Če se omejimo na regularne jezike jih lahko opišemo z regularnimi izrazi.
+Primer takšnih dreves sta XML in sintaktična drevesa EBNF gramatik.
+
+\Ex
+\begin{equation*}
+  \begin{aligned}
+    Doc &\Arrow inventory(\Kleene{Item})\\
+    Item &\Arrow desk(Desk) \Union chair(Chair) \Union computer(Computer) \\
+    Info &\Arrow Location \Seq \KleenePlus{User}\\
+    Location &\Arrow location(Building \Seq Room)\\
+    User &\Arrow user(Name \Seq Surname \Seq \Opt{Role})\\
+    Desk &\Arrow Info \Seq standing(Standing)\\
+    Chair &\Arrow Info\\
+    Computer &\Arrow Info \Seq Cpu \Seq Ram \Seq Disk\\
+    Name &\Arrow text()\\
+    Surname &\Arrow text()\\
+    Role &\Arrow text()\\
+    Building &\Arrow text()\\
+    Room &\Arrow int()\\
+    Standing &\Arrow bool()\\
+    Cpu &\Arrow float()\\
+    Ram &\Arrow float()\\
+    Disk &\Arrow float()\\
+  \end{aligned}
+\end{equation*}
+
+\begin{lstlisting}
+<inventory>
+  <desk>
+    <location>
+      <building>G3</building>
+      <room>13</room>
+    </location>
+    <user>
+      <name>Albert</name>
+      <surname>Einstein</surname>
+      <role>Researcher</role>
+    </user>
+    <user>
+      <name>Joe</name>
+      <surname>Biden</surname>
+    </user>
+    <standing>false</standing>
+  </desk>
+  <computer>
+    <location>
+      <building>G3</building>
+      <room>14</room>
+    </location>
+    <user>
+      <name>Angelina</name>
+      <surname>Jolie</surname>
+      <role>Teacher</role>
+    </user>
+    <cpu>4.2</cpu>
+    <memory>10.0</memory>
+    <disk>10.0</disk>
+  </computer>
+  <chair>
+    <location>
+      <building>G3</building>
+      <room>14</room>
+    </location>
+    <user>
+      <name>Issac</name>
+      <surname>Newton</surname>
+      <role>Researcher</role>
+    </user>
+  </chair>
+</inventory>
+\end{lstlisting}
 
 \printbibliography
 \end{document}
