@@ -79,6 +79,7 @@
 \newcommand{\T}[1]{{#1}}
 \newcommand{\Var}[1]{{#1}}
 \newcommand{\Sym}[1]{{#1}}
+\newcommand{\Lookahead}[1]{{}_{\{{#1}\}}}
 
 \makeatletter
 \DeclareRobustCommand{\Dots}{%
@@ -2152,11 +2153,11 @@ Nekaj znotraj nečesa.
   \begin{aligned}[t]
     \NT{B} &\Arrow \T{l} \Spc \T{I} \Spc \T{r}\\
     \NT{I} &\Arrow \T{i}\\[1em]
-    \NT{Box} &\Arrow \T{lbrac} \Spc \NT{Val} \Spc \T{rbrac}\\
+    \NT{Box} &\Arrow \T{lbrak} \Spc \NT{Val} \Spc \T{rbrak}\\
     \NT{Val} &\Arrow \T{num} \Union \T{star}\\[1em]
     \T{num} &= \KleenePlus{\{\Char{0}, \dots, \Char{9}\}}\\
-    \T{lbrac} &= \Char{[}\\
-    \T{rbrac} &= \Char{]}\\
+    \T{lbrak} &= \Char{[}\\
+    \T{rbrak} &= \Char{]}\\
     \T{star} &= \Char{*}
   \end{aligned}
 \end{equation*}
@@ -2170,12 +2171,12 @@ Nekaj znotraj nečesa.
     \NT{B} &\Arrow \T{l} \Spc \T{L} \Spc \T{r}\\
     \NT{L} &\Arrow \T{i} \Spc \NT{L'}\\
     \NT{L'} &\Arrow \T{s} \Spc \T{i} \Spc \NT{L'} \Union \Null\\[1em]
-    \NT{Box} &\Arrow \T{lbrac} \Spc \NT{Numbers} \Spc \T{rbrac}\\
+    \NT{Box} &\Arrow \T{lbrak} \Spc \NT{Numbers} \Spc \T{rbrak}\\
     \NT{Numbers} &\Arrow \T{num} \Spc \NT{Numbers'}\\
     \NT{Numbers'} &\Arrow \T{sep} \Spc \T{num} \Spc \NT{Numbers'} \Union \Null\\[1em]
     \T{num} &= \KleenePlus{\{\Char{0}, \dots, \Char{9}\}}\\
-    \T{lbrac} &= \Char{[}\\
-    \T{rbrac} &= \Char{]}\\
+    \T{lbrak} &= \Char{[}\\
+    \T{rbrak} &= \Char{]}\\
     \T{sep} &= \Char{+}
   \end{aligned}
 \end{equation*}
@@ -2191,11 +2192,11 @@ Nekaj znotraj nečesa.
   \begin{aligned}[t]
     \NT{B} &\Arrow \T{l} \Spc \NT{B} \Spc \T{r} \Union \NT{I}\\[1em]
     \NT{I} &\Arrow \T{i}\\
-    \NT{Box} &\Arrow \T{lbrac} \Spc \NT{Box} \Spc \T{rbrac} \Union \NT{Val}\\
+    \NT{Box} &\Arrow \T{lbrak} \Spc \NT{Box} \Spc \T{rbrak} \Union \NT{Val}\\
     \NT{Val} &\Arrow \T{num} \Union \T{star}\\[1em]
     \T{num} &= \KleenePlus{\{\Char{0}, \dots, \Char{9}\}}\\
-    \T{lbrac} &= \Char{[}\\
-    \T{rbrac} &= \Char{]}\\
+    \T{lbrak} &= \Char{[}\\
+    \T{rbrak} &= \Char{]}\\
     \T{star} &= \Char{*}
   \end{aligned}
 \end{equation*}
@@ -2212,10 +2213,10 @@ Nekaj znotraj nečesa.
     \NT{I} &\Arrow \T{i} \Union \NT{L}\\[1em]
     \NT{Numbers} &\Arrow \T{Val} \Spc \NT{Numbers'}\\
     \NT{Numbers'} &\Arrow \T{sep} \Spc \T{Val} \Spc \NT{Numbers'} \Union \Null\\
-    \NT{Val} &\Arrow \T{num} \Union \T{lbrac} \Spc \NT{Numbers} \Spc \T{rbrac}\\[1em]
+    \NT{Val} &\Arrow \T{num} \Union \T{lbrak} \Spc \NT{Numbers} \Spc \T{rbrak}\\[1em]
     \T{num} &= \KleenePlus{\{\Char{0}, \dots, \Char{9}\}}\\
-    \T{lbrac} &= \Char{[}\\
-    \T{rbrac} &= \Char{]}\\
+    \T{lbrak} &= \Char{[}\\
+    \T{rbrak} &= \Char{]}\\
     \T{sep} &= \Char{+}
   \end{aligned}
 \end{equation*}
@@ -2428,6 +2429,498 @@ Po \cite{dragonbook} za izračun $\FOLLOW$ za vse neterminale $\NT{A}$ uporabimo
   \item Če obstaja produkcija $\NT{A} \Arrow \alpha \Spc \NT{B} \Spc \beta$, potem je vse iz $\FIRST(\beta)$ razen $\Null$ v $\FOLLOW(\NT{B})$.
   \item Če obstaja produkcija $\NT{A} \Arrow \alpha \Spc \NT{B}$ ali produkcija $\NT{A} \Arrow \alpha \Spc \NT{B} \Spc \beta$, kjer $\FIRST(\beta)$ vsebuje $\Null$, potem je vse iz $\FOLLOW(\NT{A})$ v $\FOLLOW(\NT{B})$.
 \end{enumerate}
+
+\section*{Primeri}
+
+\subsection{Seznam}
+
+\subsubsection*{Jezik}
+\begin{verbatim}
+  [1]
+\end{verbatim}
+\begin{verbatim}
+  [1, 2, "abc", 3]
+\end{verbatim}
+
+\subsubsection*{Regularni izrazi}
+\begin{equation*}
+  \begin{aligned}
+    \T{int} &= \KleenePlus{\{\Char{0}, \dots, \Char{9}\}}\\
+    \T{string} &= \Char{"} \Spc \Kleene{(\Alphabet - \{\Char{"}\})} \Spc \Char{"}\\
+    \T{comma} &= \Char{,}\\
+    \T{lbrak} &= \Char{[}\\
+    \T{rbrak} &= \Char{]}\\
+  \end{aligned}
+\end{equation*}
+
+\subsubsection*{Gramatika}
+\begin{equation*}
+  \begin{aligned}
+    \NT{Start} &\Arrow \NT{List}\\
+    \NT{List} &\Arrow \T{lbrak} \Spc \NT{Items} \Spc \T{rbrak}\\
+    \NT{Items} &\Arrow \NT{Item} \Spc \NT{Items'}\\
+    \NT{Items'} &\Arrow \T{comma} \Spc \NT{Items} \Union \Null\\
+    \NT{Item} &\Arrow \T{int} \Union \T{string}
+  \end{aligned}
+\end{equation*}
+
+\subsubsection*{{\FIRST} \& {\FOLLOW}}
+\begin{equation*}
+  \begin{aligned}
+    \FIRST(\T{int}) &= \{\T{int}\}\\
+    \FIRST(\T{string}) &= \{\T{string}\}\\
+    \FIRST(\T{comma}) &= \{\T{comma}\}\\
+    \FIRST(\T{lbrak}) &= \{\T{lbrak}\}\\
+    \FIRST(\T{rbrak}) &= \{\T{rbrak}\}\\
+    \FIRST(\NT{Item}) &= \{\T{int}, \T{string}\}\\
+    \FIRST(\NT{Item'}) &= \{\T{comma}\}\\
+    \FIRST(\NT{Items}) &= \{\T{int}, \T{string}\}\\
+    \FIRST(\NT{List}) &= \{\T{lbrak}\}\\
+    \FIRST(\NT{Start}) &= \{\T{lbrak}\}\\
+    \FIRST(\T{comma} \Seq \NT{Items}) &= \{\T{comma}\}\\
+    \FIRST(\NT{Item} \Seq \NT{Items'}) &= \{\T{int}, \T{string}\}\\
+    \FIRST(\T{lbrak} \Seq \NT{Items} \Seq \T{rbrak}) &= \{\T{lbrak}\}\\[1em]
+    \FOLLOW(\NT{Start}) &= \{\EOF\}\\
+    \FOLLOW(\NT{List}) &= \{\EOF\}\\
+    \FOLLOW(\NT{Items}) &= \{\T{rbrak}\}\\
+    \FOLLOW(\NT{Items'}) &= \{\T{rbrak}\}\\
+    \FOLLOW(\NT{Item}) &= \{\T{comma}\}
+  \end{aligned}
+\end{equation*}
+
+\begin{equation*}
+  \begin{aligned}
+    \FIRST(\FIRST(\T{List}) \Seq \FOLLOW(\NT{Start})) &= \{\T{lbrak}\}\\
+    \FIRST(\FIRST(\T{lbrak} \Seq \NT{Items} \Seq \T{rbrak}) \Seq \FOLLOW(\NT{List})) &= \{\T{lbrak}\}\\
+    \FIRST(\FIRST(\NT{Item} \Seq \NT{Items'}) \Seq \FOLLOW(\NT{Items})) &= \{\T{int, string}\}\\
+    \FIRST(\FIRST(\T{comma} \Seq \NT{Items}) \Seq \FOLLOW(\NT{Items'})) &= \{\T{comma}\}\\
+    \FIRST(\FIRST(\Null) \Seq \FOLLOW(\NT{Items'})) &= \{\T{rbrak}\}\\
+    \FIRST(\FIRST(\T{int}) \Seq \FOLLOW(\NT{Item})) &= \{\T{int}\}\\
+    \FIRST(\FIRST(\T{string}) \Seq \FOLLOW(\NT{Item})) &= \{\T{string}\}\\
+  \end{aligned}
+\end{equation*}
+
+\begin{equation*}
+  \begin{aligned}
+    \NT{Start} &\Arrow \Lookahead{\T{lbrak}} \NT{List}\\
+    \NT{List} &\Arrow \Lookahead{\T{lbrak}} \T{lbrak} \Spc \NT{Items} \Spc \T{rbrak}\\
+    \NT{Items} &\Arrow \Lookahead{\T{int}, \T{string}} \NT{Item} \Spc \NT{Items'}\\
+    \NT{Items'} &\Arrow \Lookahead{\T{comma}} \T{comma} \Spc \NT{Items} \Union \Lookahead{\T{rbrak}} \Null\\
+    \NT{Item} &\Arrow \Lookahead{\T{int}} \T{int} \Union \Lookahead{\T{string}} \T{string}
+  \end{aligned}
+\end{equation*}
+
+\subsection{Slovar}
+
+\subsubsection*{Jezik}
+\begin{verbatim}
+  {}
+\end{verbatim}
+\begin{verbatim}
+  {
+    "a": 1;
+    "b": "c";
+    "d": {};
+  }
+\end{verbatim}
+
+\subsubsection*{Regularni izrazi}
+\begin{equation*}
+  \begin{aligned}
+    \T{int} &= \KleenePlus{\{\Char{0}, \dots, \Char{9}\}}\\
+    \T{string} &= \Char{"} \Spc \Kleene{(\Alphabet - \{\Char{"}\})} \Spc \Char{"}\\
+    \T{colon} &= \Char{:}\\
+    \T{semi} &= \Char{;}\\
+    \T{lbrac} &= \Char{\{}\\
+    \T{rbrac} &= \Char{\}}\\
+  \end{aligned}
+\end{equation*}
+
+\subsubsection*{Gramatika}
+\begin{equation*}
+  \begin{aligned}
+    \NT{Start} &\Arrow \NT{Dict}\\
+    \NT{Dict} &\Arrow \T{lbrac} \Spc \NT{Entries} \Spc \T{rbrac}\\
+    \NT{Entries} &\Arrow \NT{Entry} \Spc \T{semi} \Spc \NT{Entries} \Union \Null\\
+    \NT{Entry} &\Arrow \T{string} \Spc \T{colon} \Spc \NT{Value}\\
+    \NT{Value} &\Arrow \T{int} \Union \T{string} \Union \NT{Dict}
+  \end{aligned}
+\end{equation*}
+
+\subsubsection*{{\FIRST} \& {\FOLLOW}}
+\begin{equation*}
+  \begin{aligned}
+    \FIRST(\T{int}) &= \{\T{int}\}\\
+    \FIRST(\T{string}) &= \{\T{string}\}\\
+    \FIRST(\T{semi}) &= \{\T{semi}\}\\
+    \FIRST(\T{lbrac}) &= \{\T{lbrac}\}\\
+    \FIRST(\T{rbrac}) &= \{\T{rbrac}\}\\
+    \FIRST(\NT{Dict}) &= \{\T{lbrac}\}\\
+    \FIRST(\NT{Value}) &= \{\T{int}, \T{string}, \T{lbrac}\}\\
+    \FIRST(\NT{Entry}) &= \{\T{string}\}\\
+    \FIRST(\NT{Entries}) &= \{\T{string}\}\\
+    \FIRST(\NT{First}) &= \{\T{lbrac}\}\\
+    \FIRST(\T{string} \Seq \T{colon} \Seq \NT{Value}) &= \{\T{string}\}\\
+    \FIRST(\NT{Entry} \Seq \T{semi} \Seq \NT{Entries}) &= \{\T{string}\}\\
+    \FIRST(\T{lbrac} \Seq \NT{Entries} \Seq \T{rbrac}) &= \{\T{lbrac}\}\\[1em]
+    \FOLLOW(\NT{Start}) &= \{\EOF\}\\
+    \FOLLOW(\NT{Dict}) &= \{\EOF\}\\
+    \FOLLOW(\NT{Entries}) &= \{\T{rbrac}\}\\
+    \FOLLOW(\NT{Entry}) &= \{\T{semi}\}\\
+    \FOLLOW(\NT{Value}) &= \{\T{semi}\}
+  \end{aligned}
+\end{equation*}
+
+\begin{equation*}
+  \begin{aligned}
+    \FIRST(\FIRST(\NT{Dict}) \Seq \FOLLOW(\NT{Start})) &= \{\T{lbrac}\}\\
+    \FIRST(\FIRST(\T{lbrac} \Seq \NT{Entries} \Seq \T{rbrac}) \Seq \FOLLOW(\NT{Dict})) &= \{\T{lbrac}\}\\
+    \FIRST(\FIRST(\NT{Entry} \Seq \T{semi} \Seq \NT{Entries}) \Seq \FOLLOW(\NT{Entries})) &= \{\T{string}\}\\
+    \FIRST(\FIRST(\Null) \Seq \FOLLOW(\NT{Entries'})) &= \{\T{rbrac}\}\\
+    \FIRST(\FIRST(\T{string} \Seq \T{colon} \Seq \NT{Value}) \Seq \FOLLOW(\NT{Entry})) &= \{\T{string}\}\\
+    \FIRST(\FIRST(\T{int}) \Seq \FOLLOW(\NT{Value})) &= \{\T{int}\}\\
+    \FIRST(\FIRST(\T{string}) \Seq \FOLLOW(\NT{Value})) &= \{\T{string}\}\\
+    \FIRST(\FIRST(\T{Dict}) \Seq \FOLLOW(\NT{Value})) &= \{\T{lbrac}\}\\
+  \end{aligned}
+\end{equation*}
+
+\begin{equation*}
+  \begin{aligned}
+    \NT{Start} &\Arrow \Lookahead{\T{lbrac}} \NT{Dict}\\
+    \NT{Dict} &\Arrow \Lookahead{\T{lbrac}} \T{lbrac} \Spc \NT{Entries} \Spc \T{rbrac}\\
+    \NT{Entries} &\Arrow \Lookahead{\T{string}} \NT{Entry} \Spc \T{semi} \Spc \NT{Entries} \Union \Lookahead{\T{rbrac}} \Null\\
+    \NT{Entry} &\Arrow \Lookahead{\T{string}} \T{string} \Spc \T{colon} \Spc \NT{Item}\\
+    \NT{Item} &\Arrow \Lookahead{\T{int}} \T{int} \Union \Lookahead{\T{string}} \T{string} \Union \Lookahead{\T{lbrac}} \NT{Dict}
+  \end{aligned}
+\end{equation*}
+
+\subsection{Deklaracija spremenljivke}
+
+\subsubsection*{Jezik}
+\begin{verbatim}
+Int var;
+static Char global;
+private static String str;
+public static final Int pi;
+\end{verbatim}
+
+\subsubsection*{Regularni izrazi}
+\begin{equation*}
+  \begin{aligned}
+    \T{semi} &= \Char{;}\\
+    \T{id} &= \Kleene{\{\Char{A}, \dots, \Char{Z}, \Char{a}, \dots, \Char{z}\}}\\
+    \T{int} &= \Char{Int}\\
+    \T{char} &= \Char{Char}\\
+    \T{string} &= \Char{String}\\
+    \T{public} &= \Char{public}\\
+    \T{protected} &= \Char{protected}\\
+    \T{private} &= \Char{private}\\
+    \T{static} &= \Char{static}\\
+    \T{extern} &= \Char{extern}\\
+    \T{final} &= \Char{final}\\
+    \T{volatile} &= \Char{volatile}\\
+  \end{aligned}
+\end{equation*}
+
+\subsubsection*{Gramatika}
+\begin{equation*}
+  \begin{aligned}
+    \NT{Start} &\Arrow \NT{Decl}\\
+    \NT{Decl} &\Arrow \NT{Scope} \Spc \NT{Modifier} \Spc \NT{Qualifier} \Spc \NT{Type} \Spc \T{id} \Spc \T{semi}\\
+    \NT{Scope} &\Arrow \T{public} \Union \T{protected} \Union \T{private} \Union \Null\\
+    \NT{Modifier} &\Arrow \T{static} \Union \T{extern} \Union \Null\\
+    \NT{Qualifier} &\Arrow \T{final} \Union \T{volatile} \Union \Null\\
+    \NT{Type} &\Arrow \T{int} \Union \T{char} \Union \T{string}\\
+  \end{aligned}
+\end{equation*}
+
+\subsubsection*{{\FIRST} \& {\FOLLOW}}
+\begin{equation*}
+  \begin{aligned}
+    \FIRST(\T{semi}) &= \{\T{semi}\}\\
+    \FIRST(\T{id}) &= \{\T{id}\}\\
+    \FIRST(\T{int}) &= \{\T{int}\}\\
+    \FIRST(\T{char}) &= \{\T{char}\}\\
+    \FIRST(\T{string}) &= \{\T{string}\}\\
+    \FIRST(\T{public}) &= \{\T{public}\}\\
+    \FIRST(\T{protected}) &= \{\T{protected}\}\\
+    \FIRST(\T{private}) &= \{\T{private}\}\\
+    \FIRST(\T{static}) &= \{\T{static}\}\\
+    \FIRST(\T{extern}) &= \{\T{extern}\}\\
+    \FIRST(\T{final}) &= \{\T{final}\}\\
+    \FIRST(\T{volatile}) &= \{\T{volatile}\}\\
+    \FIRST(\NT{Type}) &= \{\T{int}, \T{char}, \T{string}\} \\
+    \FIRST(\NT{Qualifier}) &= \{\T{final}, \T{volatile}\}\\
+    \FIRST(\NT{Modifier}) &= \{\T{static}, \T{extern}\}\\
+    \FIRST(\NT{Scope}) &= \{\T{public}, \T{protected}, \T{private}\}\\
+    \FIRST(\NT{Decl}) &= \begin{aligned}[t]\{&\T{public}, \T{protected}, \T{private}, \T{static}, \T{extern},\\
+    &\T{final}, \T{volatile}, \T{int}, \T{char}, \T{string}\}\end{aligned}\\
+    \FIRST(\NT{Start}) &= \begin{aligned}[t]\{&\T{public}, \T{protected}, \T{private}, \T{static}, \T{extern},\\
+    &\T{final}, \T{volatile}, \T{int}, \T{char}, \T{string}\}\end{aligned}\\
+    \FIRST(\NT{Scope} \Seq \NT{Modifier} \Seq \NT{Qualifier} \Seq \NT{Type} \Seq \T{id} \Seq \T{semi}) &= \begin{aligned}[t]\{&\T{public}, \T{protected}, \T{private}, \T{static}, \T{extern},\\
+    &\T{final}, \T{volatile}, \T{int}, \T{char}, \T{string}\}\end{aligned}\\[1em]
+    \FOLLOW(\NT{Start}) &= \{\EOF\}\\
+    \FOLLOW(\NT{Decl}) &= \{\EOF\}\\
+    \FOLLOW(\NT{Scope}) &= \{\T{static}, \T{extern}, \T{final}, \T{volatile}, \T{int}, \T{char}, \T{string}\}\\
+    \FOLLOW(\NT{Modifier}) &= \{\T{final}, \T{volatile}, \T{int}, \T{char}, \T{string}\}\\
+    \FOLLOW(\NT{Qualifier}) &= \{\T{int}, \T{char}, \T{string}\}\\
+  \end{aligned}
+\end{equation*}
+
+\begin{equation*}
+  \begin{aligned}
+    \FIRST(\FIRST(\NT{Decl}) \Seq \FOLLOW(\NT{Start})) &= \begin{aligned}[t]\{&\T{public}, \T{protected}, \T{private}, \T{static}, \T{extern},\\
+    &\T{final}, \T{volatile}, \T{int}, \T{char}, \T{string}\}\end{aligned}\\
+    \FIRST(\FIRST(\T{public}) \Seq \FOLLOW(\NT{Scope})) &= \{\T{public}\}\\
+    \FIRST(\FIRST(\T{protected}) \Seq \FOLLOW(\NT{Scope})) &= \{\T{protected}\}\\
+    \FIRST(\FIRST(\T{private}) \Seq \FOLLOW(\NT{Scope})) &= \{\T{private}\}\\
+    \FIRST(\FIRST(\Null) \Seq \FOLLOW(\NT{Scope})) &= \{\T{static}, \T{extern}, \T{final}, \T{volatile}, \T{int}, \T{char}, \T{string}\}\\
+    \FIRST(\FIRST(\T{static}) \Seq \FOLLOW(\NT{Modifier})) &= \{\T{static}\}\\
+    \FIRST(\FIRST(\T{extern}) \Seq \FOLLOW(\NT{Modifier})) &= \{\T{extern}\}\\
+    \FIRST(\FIRST(\Null) \Seq \FOLLOW(\NT{Modifier})) &= \{\T{final}, \T{volatile}, \T{int}, \T{char}, \T{string}\}\\
+    \FIRST(\FIRST(\T{final}) \Seq \FOLLOW(\NT{Qualifier})) &= \{\T{static}\}\\
+    \FIRST(\FIRST(\T{volatile}) \Seq \FOLLOW(\NT{Qualifier})) &= \{\T{extern}\}\\
+    \FIRST(\FIRST(\Null) \Seq \FOLLOW(\NT{Qualifier})) &= \{\T{int}, \T{char}, \T{string}\}\\
+    \FIRST(\FIRST(\T{int}) \Seq \FOLLOW(\NT{Type})) &= \{\T{int}\}\\
+    \FIRST(\FIRST(\T{char}) \Seq \FOLLOW(\NT{Type})) &= \{\T{char}\}\\
+    \FIRST(\FIRST(\T{string}) \Seq \FOLLOW(\NT{Type})) &= \{\T{string}\}\\
+  \end{aligned}
+\end{equation*}
+
+\begin{equation*}
+  \begin{aligned}
+    \NT{Start} &\Arrow \Lookahead{\T{public}, \T{protected}, \T{private}, \T{static}, \T{extern}, \T{final}, \T{volatile}, \T{int}, \T{char}, \T{string}} \NT{Decl}\\
+    \NT{Decl} &\Arrow \Lookahead{\T{public}, \T{protected}, \T{private}, \T{static}, \T{extern}, \T{final}, \T{volatile}, \T{int}, \T{char}, \T{string}} \NT{Scope} \Spc \NT{Modifier} \Spc \NT{Qualifier} \Spc \NT{Type} \Spc \T{id} \Spc \T{semi}\\
+    \NT{Scope} &\Arrow \Lookahead{\T{public}} \T{public} \Union \Lookahead{\T{protected}} \T{protected} \Union \Lookahead{\T{private}} \T{private} \Union \Lookahead{\T{static}, \T{extern}, \T{final}, \T{volatile}, \T{int}, \T{char}, \T{string}} \Null\\
+    \NT{Modifier} &\Arrow \Lookahead{\T{static}} \T{static} \Union \Lookahead{\T{extern}} \T{extern} \Union \Lookahead{\T{final}, \T{volatile}, \T{int}, \T{char}, \T{string}} \Null\\
+    \NT{Qualifier} &\Arrow \Lookahead{\T{final}} \T{final} \Union \Lookahead{\T{volatile}} \T{volatile} \Union \Lookahead{\T{int}, \T{char}, \T{string}} \Null\\
+    \NT{Type} &\Arrow \Lookahead{\T{int}}  \T{int} \Union \Lookahead{\T{char}} \T{char} \Union \Lookahead{\T{string}} \T{string}\\
+  \end{aligned}
+\end{equation*}
+
+\subsection{Deklaracija funkcije}
+
+\subsubsection*{Jezik}
+\begin{verbatim}
+Int fun();
+Int add(Int x, Int y);
+Bool isZero(Int x);
+Unit print();
+\end{verbatim}
+
+\subsubsection*{Regularni izrazi}
+\begin{equation*}
+  \begin{aligned}
+    \T{semi} &= \Char{;}\\
+    \T{comma} &= \Char{,}\\
+    \T{lparen} &= \Char{(}\\
+    \T{rparen} &= \Char{)}\\
+    \T{id} &= \KleenePlus{\{\Char{A}, \dots, \Char{Z}, \Char{a}, \dots, \Char{z}\}}\\
+    \T{unit} &= \Char{Unit}\\
+    \T{int} &= \Char{Int}\\
+    \T{char} &= \Char{Char}\\
+    \T{string} &= \Char{String}\\
+  \end{aligned}
+\end{equation*}
+
+\subsubsection*{Gramatika}
+\begin{equation*}
+  \begin{aligned}
+    \NT{Start} &\Arrow \NT{Decl}\\
+    \NT{Decl} &\Arrow \NT{Type} \Spc \T{id} \Spc \T{lparen} \Spc \NT{Args} \Spc \T{rparen} \Spc \T{semi}\\
+    \NT{Args} &\Arrow \NT{Arg} \Spc \NT{Args'} \Union \Null\\
+    \NT{Args'} &\Arrow \T{comma} \Spc \NT{Arg} \Spc \NT{Args'} \Union \Null\\
+    \NT{Arg} &\Arrow \NT{Type} \Spc \T{id}\\
+    \NT{Type} &\Arrow \T{unit} \Union \T{int} \Union \T{char} \Union \T{string}\\
+  \end{aligned}
+\end{equation*}
+
+\subsubsection*{{\FIRST} \& {\FOLLOW}}
+\begin{equation*}
+  \begin{aligned}
+    \NT{Start} &\Arrow \Lookahead{\T{unit}, \T{int}, \T{char}, \T{string}} \NT{Decl}\\
+    \NT{Decl} &\Arrow \Lookahead{\T{unit}, \T{int}, \T{char}, \T{string}} \NT{Type} \Spc \T{id} \Spc \T{lparen} \Spc \NT{Args} \Spc \T{rparen} \Spc \T{semi}\\
+    \NT{Args} &\Arrow \Lookahead{\T{unit}, \T{int}, \T{char}, \T{string}} \NT{Arg} \Spc \NT{Args'} \Union \Lookahead{\T{rparen}} \Null\\
+    \NT{Args'} &\Arrow \Lookahead{\T{comma}} \T{comma} \Spc \NT{Arg} \Spc \NT{Args'} \Union \Lookahead{\T{rparen}} \Null \\
+    \NT{Arg} &\Arrow \Lookahead{\T{unit}, \T{int}, \T{char}, \T{string}} \NT{Type} \Spc \T{id}\\
+    \NT{Type} &\Arrow \Lookahead{\T{unit}} \T{unit} \Union \Lookahead{\T{int}} \T{int} \Union \Lookahead{\T{char}} \T{char} \Union \Lookahead{\T{string}} \T{string}\\
+  \end{aligned}
+\end{equation*}
+
+\subsection{Preprosta Boolova algebra}
+\begin{verbatim}
+true
+true & false => false
+true | false & true
+(true | false) & true
+false => true
+\end{verbatim}
+
+\subsubsection*{Regularni izrazi}
+\begin{equation*}
+  \begin{aligned}
+    \T{arrow} &= \Char{=>}\\
+    \T{and} &= \Char{\&}\\
+    \T{or} &= \Char{|}\\
+    \T{true} &= \Char{true}\\
+    \T{false} &= \Char{false}\\
+    \T{lparen} &= \Char{(}\\
+    \T{rparen} &= \Char{)}\\
+  \end{aligned}
+\end{equation*}
+
+\subsubsection*{Gramatika}
+\begin{align*}
+  \NT{Start} &\Arrow \NT{Impl}\\[1em]
+  \NT{Impl} &\Arrow \NT{Disj} \Spc \NT{Impl'}\\
+  \NT{Impl'} &\Arrow \T{arrow} \Spc \NT{Disj} \Spc \NT{Impl'} \Union \Null\\[1em]
+  \NT{Disj} &\Arrow \NT{Conj} \Spc \NT{Disj'}\\
+  \NT{Disj'} &\Arrow \T{or} \Spc \NT{Conj} \Spc \NT{Disj'} \Union \Null\\[1em]
+  \NT{Conj} &\Arrow \NT{Primary} \Spc \NT{Conj'}\\
+  \NT{Conj'} &\Arrow \T{and} \Spc \NT{Primary} \Spc \NT{Conj'} \Union \Null\\[1em]
+  \NT{Primary} &\Arrow \T{true} \Union \T{false} \Union \T{lparen} \Spc \NT{Impl} \Spc \T{rparen}
+\end{align*}
+
+\subsubsection*{{\FIRST} \& {\FOLLOW}}
+\begin{align*}
+  \NT{Start} &\Arrow \Lookahead{\T{true}, \T{false}, \T{lparen}} \NT{Impl}\\[1em]
+  \NT{Impl} &\Arrow \Lookahead{\T{true}, \T{false}, \T{lparen}} \NT{Disj} \Spc \NT{Impl'}\\
+  \NT{Impl'} &\Arrow \Lookahead{\T{arrow}} \T{arrow} \Spc \NT{Disj} \Spc \NT{Impl'} \Union \Lookahead{\T{rparen}, \T{\EOF}} \Null\\[1em]
+  \NT{Disj} &\Arrow \Lookahead{\T{true}, \T{false}, \T{lparen}} \NT{Conj} \Spc \NT{Disj'}\\
+  \NT{Disj'} &\Arrow \Lookahead{\T{or}} \T{or} \Spc \NT{Conj} \Spc \NT{Disj'} \Union \Lookahead{\T{arrow}, \T{rparen}, \T{\EOF}} \Null\\[1em]
+  \NT{Conj} &\Arrow \Lookahead{\T{true}, \T{false}, \T{lparen}} \NT{Primary} \Spc \NT{Conj'}\\
+  \NT{Conj'} &\Arrow \Lookahead{\T{and}} \T{and} \Spc \NT{Primary} \Spc \NT{Conj'} \Union \Lookahead{\T{or}, \T{arrow}, \T{rparen}, \T{\EOF}} \Null\\[1em]
+  \NT{Primary} &\Arrow \Lookahead{\T{true}} \T{true} \Union \Lookahead{\T{false}} \T{false} \Union \Lookahead{\T{lparen}} \T{lparen} \Spc \NT{Impl} \Spc \T{rparen}
+\end{align*}
+
+\subsection{BC}
+\begin{verbatim}
+  a = 1;
+  b = 2;
+  print a + b;
+\end{verbatim}
+
+\subsubsection*{Regularni izrazi}
+\begin{equation*}
+  \begin{aligned}
+    \T{int} &= \KleenePlus{\{\Char{0}, \dots, \Char{9}\}}\\
+    \T{id} &= \KleenePlus{\{\Char{a}, \dots, \Char{z}\}}\\
+    \T{asign} &= \Char{=}\\
+    \T{semi} &= \Char{;}\\
+    \T{plus} &= \Char{+}\\
+    \T{minus} &= \Char{-}\\
+    \T{times} &= \Char{*}\\
+    \T{divide} &= \Char{/}\\
+    \T{lparen} &= \Char{(}\\
+    \T{rparen} &= \Char{)}\\
+    \T{print} &= \Char{print}\\
+  \end{aligned}
+\end{equation*}
+
+\subsubsection*{Gramatika}
+\begin{equation*}
+  \begin{aligned}
+    \NT{Stmts} &\Arrow \NT{Stmt} \Spc \T{semi} \Spc \NT{Stmts} \Union \Null\\
+    \NT{Stmt} &\Arrow \T{id} \Spc \T{assign} \Spc \NT{Expr} \Union \T{print} \Spc \NT{Expr}\\
+    \NT{Expr} &\Arrow \NT{Term} \Spc \NT{Expr'}\\
+    \NT{Expr'} &\Arrow \T{plus} \Spc \NT{Term} \Spc \NT{Expr'} \Union \T{minus} \Spc \NT{Term} \Spc \NT{Expr'} \Union \Null\\
+    \NT{Term} &\Arrow \NT{Fac} \Spc \NT{Term'}\\
+    \NT{Term'} &\Arrow \T{times} \Spc \NT{Fac} \Spc \NT{Term'} \Union \T{divide} \Spc \NT{Fac} \Spc \NT{Term'} \Union \Null\\
+    \NT{Fac} &\Arrow \T{plus} \Spc \NT{Value} \Union \T{minus} \Spc \NT{Value} \Union \NT{Value}\\
+    \NT{Value} &\Arrow \T{int} \Union \T{id} \Union \T{lparen} \Spc \NT{Expr} \Spc \T{rparen}
+  \end{aligned}
+\end{equation*}
+
+\subsection{Lisp}
+\begin{verbatim}
+  (cons 1 (cons 1 nil))
+\end{verbatim}
+\begin{verbatim}
+  (cons (+ 1 1) 2)
+\end{verbatim}
+\begin{verbatim}
+  (list 1 2 3)
+\end{verbatim}
+
+\subsubsection*{Regularni izrazi}
+\begin{equation*}
+  \begin{aligned}
+    \T{nil} &= \Char{n} \Spc \Char{i} \Spc \Char{l}\\
+    \T{int} &= \KleenePlus{\{\Char{0}, \dots, \Char{9}\}}\\
+    \T{id} &= \KleenePlus{\{\Char{a}, \dots, \Char{z}, \Char{+}, \Char{-}, \Char{*}, \Char{/} \}}\\
+    \T{lparen} &= \Char{(}\\
+    \T{rparen} &= \Char{)}\\
+  \end{aligned}
+\end{equation*}
+
+\subsubsection*{Gramatika}
+\begin{equation*}
+  \begin{aligned}
+    \NT{App} &\Arrow \T{lparen} \Spc \NT{Expr} \Spc \NT{Exprs} \Spc \T{rparen}\\
+    \NT{Exprs} &\Arrow \NT{Expr} \Spc \NT{Exprs} \Union \Null\\
+    \NT{Expr} &\Arrow \T{int} \Union \T{id} \Union \T{nil} \Union \NT{App}
+  \end{aligned}
+\end{equation*}
+
+\subsection{DC}
+\begin{verbatim}
+  10 3 *
+\end{verbatim}
+\begin{verbatim}
+  1 2 + 3 *
+\end{verbatim}
+\begin{verbatim}
+  8 9 / 1 +
+\end{verbatim}
+
+\subsubsection*{Regularni izrazi}
+\begin{equation*}
+  \begin{aligned}
+    \T{int} &= \KleenePlus{\{\Char{0}, \dots, \Char{9}\}}\\
+    \T{operation} &= \{\Char{+}, \Char{-}, \Char{*}, \Char{/}\}
+  \end{aligned}
+\end{equation*}
+
+\subsubsection*{Gramatika}
+\begin{equation*}
+  \begin{aligned}
+    \NT{Cmds} &\Arrow \NT{Cmd} \Spc \NT{Cmds} \Union \Null \\
+    \NT{Cmd} &\Arrow \T{int} \Union \T{operation}\\
+  \end{aligned}
+\end{equation*}
+
+\subsection{JSON}
+\begin{verbatim}
+  "b"
+\end{verbatim}
+\begin{verbatim}
+  [1, 2, 3]
+\end{verbatim}
+\begin{verbatim}
+  {
+    "a": [1, 2, 3];
+    "b": "c";
+    "d": {"a": 1;};
+  }
+\end{verbatim}
+
+\subsection{Graphviz}
+\begin{verbatim}
+  graph {}
+\end{verbatim}
+\begin{verbatim}
+  graph {
+    A;
+  }
+\end{verbatim}
+\begin{verbatim}
+  graph {
+    A; B; C;
+    A -- A;
+    B -- C;
+    A -- C;
+  }
+\end{verbatim}
 
 \chapter{Sintaktična drevesa}
 
@@ -2720,7 +3213,7 @@ Izrazi so zelo podobni binarnim drevesom, le da imamo različno vrsto vozlišča
     &\Sum 1\\
   \end{aligned}
 \end{equation*}
-Izjave so zelo podobne seznamom, le da imamo različeno vrsto celice za vsak ukaz.
+Izjave so zelo podobne seznamom, le da imamo različno vrsto celice za vsak ukaz.
 
 \section{Konkretno sintaktično drevo}
 Za razčlenjevanje moramo "naravno" gramatiko preoblikovati.
