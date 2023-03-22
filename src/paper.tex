@@ -3269,23 +3269,19 @@ Primer takšnih dreves sta XML in sintaktična drevesa EBNF gramatik.
   \begin{aligned}
     Doc &\Arrow inventory(\Kleene{Item})\\
     Item &\Arrow desk(Desk) \Union chair(Chair) \Union computer(Computer) \\
-    Info &\Arrow Location \Seq \KleenePlus{User}\\
-    Location &\Arrow location(Building \Seq Room)\\
-    User &\Arrow user(Name \Seq Surname \Seq \Opt{Role})\\
-    Desk &\Arrow Info \Seq standing(Standing)\\
+    Info &\Arrow location(Location) \Seq \KleenePlus{user(User)}\\
+    Location &\Arrow building(string()) \Seq room(Room)\\
+    User &\Arrow name(Capitalized) \Seq surname(Capitalized) \Seq \Opt{role(Role)}\\
+    Desk &\Arrow Info \Seq standing(boolean())\\
     Chair &\Arrow Info\\
-    Computer &\Arrow Info \Seq Cpu \Seq Ram \Seq Disk\\
-    Name &\Arrow text()\\
-    Surname &\Arrow text()\\
-    Role &\Arrow text()\\
-    Building &\Arrow text()\\
-    Room &\Arrow int()\\
-    Standing &\Arrow bool()\\
-    Cpu &\Arrow float()\\
-    Ram &\Arrow float()\\
-    Disk &\Arrow float()\\
+    Computer &\Arrow Info \Seq cpu(Quantity) \Seq memory(Quantity) \Seq disk(Quantity)\\
+    Capitalized &\Arrow string()\\
+    Role &\Arrow string()\\
+    Room &\Arrow integer()\\
+    Quantity &\Arrow float()\\
   \end{aligned}
 \end{equation*}
+\newpage
 
 \begin{lstlisting}
 <inventory>
